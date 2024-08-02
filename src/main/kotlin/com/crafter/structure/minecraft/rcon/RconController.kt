@@ -11,6 +11,16 @@ import java.net.Socket
 import java.util.concurrent.TimeoutException
 
 class RconController(private val ip: String, private val port: Int, private val password: String) {
+    private val colorCodes = listOf(
+        "§0", "§1", "§2",
+        "§3", "§4", "§5",
+        "§6", "§7", "§8",
+        "§9", "§a", "§b",
+        "§c", "§d", "§e",
+        "§f", "§g", "§o",
+        "§l"
+    )
+
     private val availableCharsRegex = """[a-zA-Zа-яА-Я\s.,!?;:'"-()«»—_`{}\[\]<>/\\|]""".toRegex()
     // MaGiC
     private val authResponseID = 167772160
@@ -49,7 +59,11 @@ class RconController(private val ip: String, private val port: Int, private val 
 
         val responseId = withContext(Dispatchers.IO) { inputStream!!.readInt() }
         val responseCode = withContext(Dispatchers.IO) { inputStream!!.readInt() }
-        val responseMessage = readString()
+        var responseMessage = readString()
+
+        colorCodes.forEach {
+            responseMessage = responseMessage.replace(it, "")
+        }
 
         return RconResponse(responseId, responseCode, responseMessage.filter { it.toString().matches(availableCharsRegex) })
     }
@@ -87,5 +101,9 @@ class RconController(private val ip: String, private val port: Int, private val 
     }
 
     @Throws(IOException::class)
-    fun close() = socket?.close()
+    fun close() {
+        socket?.close()
+        inputStream?.close()
+        outputStream?.close()
+    }
 }
