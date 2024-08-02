@@ -11,11 +11,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 * However, since RCON requires the original password to function properly, and considering the limitations and lack of alternative options,
 * we have used this straightforward approach. Thus, the class is kept in its current form due to these constraints.
 */
-class Encryption {
-    private val staticIv = IvParameterSpec((0..15).map { it.toByte() }.toByteArray())
-    private val algorithm = "AES"
-
-    private val cipher = Cipher.getInstance("$algorithm/CBC/PKCS5Padding")
+object Encryption {
     /**
      * Explanation of how everything works:
      *
@@ -29,7 +25,11 @@ class Encryption {
      *    If we then attempt to decrypt this Base64-encoded value with a different key, such as "ANTON2",
      *    we will encounter a padding error.
      */
-    private val secretKey = SecretKeySpec(System.getenv("CRAFTER_SECRET_KEY").toByteArray(), algorithm)
+    private const val ALGORITHM = "AES"
+    private val staticIv = IvParameterSpec((0..15).map { it.toByte() }.toByteArray())
+
+    private val cipher = Cipher.getInstance("$ALGORITHM/CBC/PKCS5Padding")
+    private val secretKey = SecretKeySpec(System.getenv("CRAFTER_SECRET_KEY").toByteArray(), ALGORITHM)
 
     @OptIn(ExperimentalEncodingApi::class)
     fun encryptPassword(password: String): String {

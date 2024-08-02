@@ -10,10 +10,9 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 object RCONRepository : Repository() {
     private val model = RCONModel
-    val encryption = Encryption()
 
     override suspend fun upsert(data: Map<String, Any>): Unit = dbQuery {
-        val encryptedUserPassword = encryption.encryptPassword(data["password"].toString())
+        val encryptedUserPassword = Encryption.encryptPassword(data["password"].toString())
 
         model.upsert(model.guildId, onUpdate = listOf(
             model.ipv4 to stringLiteral(data["ip"].toString()),
@@ -46,5 +45,5 @@ object RCONRepository : Repository() {
         model.deleteWhere { model.guildId eq key }
     }
 
-    fun getRconPassword(password: String) = encryption.decryptPassword(password)
+    fun getRconPassword(password: String) = Encryption.decryptPassword(password)
 }
