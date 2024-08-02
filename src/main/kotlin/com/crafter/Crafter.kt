@@ -3,8 +3,8 @@ package com.crafter
 import com.crafter.discord.registry.CommandRegistry
 import com.crafter.discord.t9n.T9nProtocol
 import com.crafter.structure.database.Database
-import com.crafter.structure.minecraft.pinger.PingPacket
-import com.crafter.structure.minecraft.pinger.Pinger
+import com.crafter.structure.minecraft.protocol.MinecraftProtocol
+import com.crafter.structure.utilities.UnstableApi
 import dev.minn.jda.ktx.events.listener
 import dev.minn.jda.ktx.jdabuilder.default
 import kotlinx.coroutines.*
@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.session.ReadyEvent
 
 /** Main class singleton **/
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, UnstableApi::class)
 object CrafterInstance {
     private val initializables = listOf(T9nProtocol, Database)
     private val jda by lazy {
