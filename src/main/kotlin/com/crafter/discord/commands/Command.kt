@@ -7,6 +7,4 @@ interface Command {
     val name: String
     val description: String
     val options: List<OptionData>
-
-    fun buildOptions(): SlashCommandData
 }

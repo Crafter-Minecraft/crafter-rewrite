@@ -6,11 +6,11 @@ import com.crafter.discord.t9n.text
 import com.crafter.structure.minecraft.rcon.RconController
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
 // This command can be singleton, because everything here static
-object RconCommand : SlashCommand<SlashCommandInteractionEvent>("rcon", "rcon.description") {
+object RconCommand : SlashCommand("rcon", "rcon.description") {
     private val ignoredIps = listOf("255.255.255.255", "0.0.0.0", "::1")
     private val ipRegex = """\b((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\b""".toRegex()
     private val portRegex = """\b(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[0-9]{1,4})\b""".toRegex()
@@ -79,10 +79,16 @@ object RconCommand : SlashCommand<SlashCommandInteractionEvent>("rcon", "rcon.de
         ).queue()
     }
 
-    override fun buildOptions(): SlashCommandData = instance.addSubcommands(
-        SubcommandData("setup", "Setting up your RCON")
-            .addOptions(options),
-        SubcommandData("execute", "Execute RCON command")
-            .addOption(OptionType.STRING, "command", "Command that should be executed on server.")
-    )
+    init {
+        commandData.addSubcommands(
+            SubcommandData("setup", "Setting up your RCON")
+                .addOptions(
+                    OptionData(OptionType.STRING, "ip", "Your RCON IP"),
+                    OptionData(OptionType.STRING, "port", "Your RCON port"),
+                    OptionData(OptionType.STRING, "password", "Your RCON password")
+                ),
+            SubcommandData("execute", "Execute RCON command")
+                .addOption(OptionType.STRING, "command", "Command that should be executed on server.")
+        )
+    }
 }

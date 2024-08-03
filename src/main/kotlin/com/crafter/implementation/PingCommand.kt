@@ -8,21 +8,22 @@ import com.crafter.structure.utilities.UnstableApi
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 
 @OptIn(UnstableApi::class)
-object PingCommand : SlashCommand<SlashCommandInteractionEvent>("ping", "ping.description") {
+object PingCommand : SlashCommand(
+    "ping",
+    "ping.description",
+    listOf(
+        OptionData(OptionType.STRING, "server", "Server that you wanna check", true),
+        OptionData(OptionType.STRING, "port", "Server port", false),
+        OptionData(OptionType.STRING, "version", "Server version", false)
+    )
+) {
     // TODO: Move it to minecraft and add more versions
     private val protocolVersionMap = mapOf(
         "1.8" to 47,
         "1.12.2" to 340,
         "1.19.3" to 761
-    )
-
-    override fun buildOptions(): SlashCommandData = instance.addOptions(
-        OptionData(OptionType.STRING, "server", "ping.server.description", true),
-        OptionData(OptionType.STRING, "port", "ping.port.description", false),
-        OptionData(OptionType.STRING, "version", "ping.version.description", false),
     )
 
     override suspend fun execute(event: SlashCommandInteractionEvent) {
