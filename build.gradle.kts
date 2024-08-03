@@ -14,7 +14,6 @@ dependencies {
     // Discord
     implementation("net.dv8tion:JDA:${property("jda_version")}")
     implementation("net.dv8tion:JDA:${property("jda_version")}")
-    implementation("club.minnced:jda-ktx:0.12.0")
 
     // Database
     implementation("org.postgresql:postgresql:42.7.3")
@@ -24,9 +23,6 @@ dependencies {
 
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.6")
-
-    // Json
-    implementation("org.json:json:20240303")
 }
 
 kotlin {
