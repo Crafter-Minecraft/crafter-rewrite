@@ -13,7 +13,6 @@ repositories {
 dependencies {
     // Discord
     implementation("net.dv8tion:JDA:${property("jda_version")}")
-    implementation("net.dv8tion:JDA:${property("jda_version")}")
 
     // Database
     implementation("org.postgresql:postgresql:42.7.3")
