@@ -28,9 +28,9 @@ object PingCommand : SlashCommand<SlashCommandInteractionEvent>("ping", "ping.de
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
 
-        val address = event.interaction.getOption("server")!!.asString
-        val port = event.interaction.getOption("port")?.asInt ?: 25565
-        val version = event.interaction.getOption("version")?.asString ?: "1.12.2"
+        val address = event.getOption("server")!!.asString
+        val port = event.getOption("port")?.asInt ?: 25565
+        val version = event.getOption("version")?.asString ?: "1.12.2"
         val protocolVersion = protocolVersionMap[version] ?: 340
 
         try {
