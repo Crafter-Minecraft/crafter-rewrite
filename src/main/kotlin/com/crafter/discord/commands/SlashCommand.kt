@@ -10,29 +10,29 @@ import net.dv8tion.jda.api.interactions.commands.localization.ResourceBundleLoca
 import java.util.*
 
 // TODO: Implement convenient subgroup/command creation
-abstract class SlashCommand<T : SlashCommandInteractionEvent>(
+abstract class SlashCommand(
     final override val name: String,
     final override val description: String,
     final override val options: List<OptionData> = emptyList()
-) : Command, IExecutableCommand<T> {
-    val instance = Commands.slash(name, description)
+) : Command, IExecutableCommand<SlashCommandInteractionEvent> {
+    val commandData = Commands.slash(name, description)
 
     private val localization = ResourceBundleLocalizationFunction
         .fromBundle(ResourceBundle.getBundle("translate/slash_commands"), DiscordLocale.RUSSIAN)
         .build()
 
-    fun addCommandGroup(vararg groupList: SubcommandGroupData): SlashCommand<T> {
-        instance.addSubcommandGroups(groupList.toList())
+    fun addCommandGroup(vararg groupList: SubcommandGroupData): SlashCommand {
+        commandData.addSubcommandGroups(groupList.toList())
         return this
     }
 
-    fun addSubCommand(vararg subCommands: SubcommandData): SlashCommand<T> {
-        instance.addSubcommands(subCommands.toList())
+    fun addSubCommand(vararg subCommands: SubcommandData): SlashCommand {
+        commandData.addSubcommands(subCommands.toList())
         return this
     }
 
     init {
-        instance
+        commandData
             .addOptions(options)
             .setLocalizationFunction(localization)
             .setGuildOnly(true)
