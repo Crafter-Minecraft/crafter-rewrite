@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.crafter.structure.minecraft.protocol
 
 import com.crafter.structure.minecraft.protocol.packet.LoginAcknowledg
@@ -14,12 +16,9 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 import java.util.UUID
-import kotlin.math.log
 
 @UnstableApi
 class MinecraftProtocol(private val address: String, private val port: Int) : Closeable {
-    private val scope = CoroutineScope(Dispatchers.IO)
-
     private var socket: Socket? = null
     private var outputStream: DataOutputStream? = null
     private var inputStream: DataInputStream? = null

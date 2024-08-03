@@ -1,12 +1,12 @@
 package com.crafter.discord.commands
 
-import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 
-interface Command<in T : Event> {
+interface Command {
     val name: String
     val description: String
     val options: List<OptionData>
 
-    suspend fun callback(event: T)
+    fun buildOptions(): SlashCommandData
 }

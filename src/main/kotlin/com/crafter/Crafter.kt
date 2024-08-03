@@ -3,47 +3,41 @@ package com.crafter
 import com.crafter.discord.registry.CommandRegistry
 import com.crafter.discord.t9n.T9nProtocol
 import com.crafter.structure.database.Database
-import com.crafter.structure.minecraft.protocol.MinecraftProtocol
-import com.crafter.structure.utilities.UnstableApi
-import dev.minn.jda.ktx.events.listener
-import dev.minn.jda.ktx.jdabuilder.default
 import kotlinx.coroutines.*
+import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 /** Main class singleton **/
-@OptIn(DelicateCoroutinesApi::class, UnstableApi::class)
-object CrafterInstance {
+@OptIn(DelicateCoroutinesApi::class)
+object CrafterInstance : ListenerAdapter() {
     private val initializables = listOf(T9nProtocol, Database)
-    private val jda by lazy {
-        default(Property("bot.token").getString(), enableCoroutines = true)
-    }
+    private val jda = JDABuilder.createDefault(Property("bot.token").getString())
+        .addEventListeners(this)
+        .build()
 
-    private val catchCoroutineExceptions = CoroutineExceptionHandler { _, throwable ->
-        throwable.printStackTrace()
-    }
+    // TODO: Make it global after release
+    override fun onReady(event: ReadyEvent) {
+        val guild = jda.getGuildById(1069511383974166578)
+        CommandRegistry.slashCommandList.map {
+            it.buildOptions()
 
-    init {
-        initializables.forEach { it.initialize() }
-
-        jda.listener<SlashCommandInteractionEvent> { event ->
-            GlobalScope.launch(catchCoroutineExceptions) {
-                CommandRegistry.slashCommandList
-                    .firstOrNull { it.name == event.name }
-                    ?.callback(event)
-            }
-        }
-
-        // TODO: Make it global after release
-        jda.listener<ReadyEvent> {
-            val guild = jda.getGuildById(1069511383974166578)
-            CommandRegistry.slashCommandList.map {
-                guild
-                    ?.upsertCommand(it.get())
-                    ?.queue()
-            }
+            guild
+                ?.upsertCommand(it.instance)
+                ?.queue()
         }
     }
+
+    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
+        GlobalScope.launch {
+            CommandRegistry.slashCommandList
+                .firstOrNull { it.name == event.name }
+                ?.execute(event)
+        }
+    }
+
+    init { initializables.forEach { it.initialize() }}
 }
 
 fun main() { CrafterInstance }
