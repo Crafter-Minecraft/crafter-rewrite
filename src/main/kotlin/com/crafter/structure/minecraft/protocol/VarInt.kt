@@ -2,21 +2,20 @@ package com.crafter.structure.minecraft.protocol
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import kotlin.experimental.and
 
 object VarInt {
-    const val SEGMENT_BITS = 0x7F.toByte()
-    const val CONTINUE_BIT = 0x80.toByte()
+    const val SEGMENT_BITS = 0x7F
+    const val CONTINUE_BIT = 0x80
 }
 
 fun DataOutputStream.writeVarInt(value: Int) {
     var intValue = value
     while (true) {
-        if ((intValue and 0x7F.inv()) == 0) {
+        if ((intValue and VarInt.SEGMENT_BITS.inv()) == 0) {
             writeByte(intValue)
             return
         }
-        writeByte(intValue and 0x7F or 0x80)
+        writeByte(intValue and VarInt.SEGMENT_BITS or VarInt.CONTINUE_BIT)
         intValue = intValue ushr 7
     }
 }
@@ -34,12 +33,12 @@ fun readVarInt(inputStream: DataInputStream): Int {
 
     do {
         read = inputStream.readByte()
-        val value = (read.toInt() and 0x7F)
+        val value = (read.toInt() and VarInt.SEGMENT_BITS)
         result = result or (value shl (7 * numRead))
 
         numRead++
         if (numRead > 5) throw RuntimeException("VarInt is too big")
-    } while ((read.toInt() and 0x80) != 0)
+    } while ((read.toInt() and VarInt.CONTINUE_BIT) != 0)
 
     return result
 }
