@@ -42,6 +42,8 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         packetStream.write(packetData)
         outputStream!!.write(packet.toByteArray())
         outputStream!!.flush()
+
+        println(packet.toByteArray().contentToString())
     }
 
     suspend fun readPacket(): String = withContext(Dispatchers.IO) {
@@ -68,7 +70,9 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         val handshakePacket = HandshakePacket(address, port, protocolVersion, state)
         sendPacket(handshakePacket.toByteArray())
 
-        val responseData = request(handshakePacket)
+        val responseData = if (state == HandshakeState.State) {
+            request(handshakePacket)
+        } else ""
 
         return@withContext responseData
     }
@@ -77,8 +81,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         val loginStart = LoginStartPacket(username, uuid)
         sendPacket(loginStart.toByteArray())
 
-        val responseData = request(loginStart)
-        return@withContext responseData
+        return@withContext readPacket()
     }
 
     suspend fun sendLoginAcknowledge() {

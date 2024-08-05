@@ -16,7 +16,8 @@ class LoginStartPacket(
 
         stream.writeByte(packetId)
         stream.writeString(username)
-        stream.writeString(uuid.toString())
+        stream.writeLong(uuid.mostSignificantBits)
+        stream.writeLong(uuid.leastSignificantBits)
 
         return packet.toByteArray()
     }
