@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 group = "com.crafter"
@@ -22,6 +23,8 @@ dependencies {
 
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.6")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 }
 
 kotlin {

@@ -2,7 +2,7 @@
 
 package com.crafter.structure.minecraft.protocol
 
-import com.crafter.structure.minecraft.protocol.packet.LoginAcknowledg
+import com.crafter.structure.minecraft.protocol.packet.LoginAcknowledge
 import com.crafter.structure.minecraft.protocol.packet.LoginStartPacket
 import com.crafter.structure.minecraft.protocol.packet.Packet
 import com.crafter.structure.minecraft.protocol.packet.RequestPacket
@@ -44,12 +44,13 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         outputStream!!.flush()
     }
 
-    private suspend fun readPacket(): String = withContext(Dispatchers.IO) {
+    suspend fun readPacket(): String = withContext(Dispatchers.IO) {
         readVarInt(inputStream!!) // Length
         readVarInt(inputStream!!) // Packet ID
         val dataLength = readVarInt(inputStream!!)
         val responseData = ByteArray(dataLength)
-        inputStream!!.read(responseData)
+
+        inputStream!!.readFully(responseData)
 
         return@withContext String(responseData)
     }
@@ -80,11 +81,11 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         return@withContext responseData
     }
 
-    suspend fun sendLoginAcknowledg() {
-        val loginAcknowledg = LoginAcknowledg()
-        sendPacket(loginAcknowledg.toByteArray())
+    suspend fun sendLoginAcknowledge() {
+        val loginAcknowledge = LoginAcknowledge()
+        sendPacket(loginAcknowledge.toByteArray())
 
-        request(loginAcknowledg)
+        request(loginAcknowledge)
     }
 
     override fun close() {

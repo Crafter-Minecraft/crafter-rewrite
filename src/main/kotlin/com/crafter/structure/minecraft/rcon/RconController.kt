@@ -1,5 +1,6 @@
 package com.crafter.structure.minecraft.rcon
 
+import com.crafter.structure.minecraft.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -11,16 +12,6 @@ import java.net.Socket
 import java.util.concurrent.TimeoutException
 
 class RconController(private val ip: String, private val port: Int, private val password: String) {
-    private val colorCodes = listOf(
-        "§0", "§1", "§2",
-        "§3", "§4", "§5",
-        "§6", "§7", "§8",
-        "§9", "§a", "§b",
-        "§c", "§d", "§e",
-        "§f", "§g", "§o",
-        "§l"
-    )
-
     private val availableCharsRegex = """[a-zA-Zа-яА-Я\s.,!?;:'"-()«»—_`{}\[\]<>/\\|]""".toRegex()
     // MaGiC
     private val authResponseID = 167772160
@@ -61,8 +52,8 @@ class RconController(private val ip: String, private val port: Int, private val 
         val responseCode = withContext(Dispatchers.IO) { inputStream!!.readInt() }
         var responseMessage = readString()
 
-        colorCodes.forEach {
-            responseMessage = responseMessage.replace(it, "")
+        Color.entries.forEach { entry ->
+            responseMessage = responseMessage.replace(entry.code, "")
         }
 
         return RconResponse(responseId, responseCode, responseMessage.filter { it.toString().matches(availableCharsRegex) })
