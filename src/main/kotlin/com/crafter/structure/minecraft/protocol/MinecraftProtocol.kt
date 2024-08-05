@@ -77,8 +77,8 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         return@withContext responseData
     }
 
-    suspend fun sendLoginStart(username: String, uuid: UUID) = withContext(Dispatchers.IO) {
-        val loginStart = LoginStartPacket(username, uuid)
+    suspend fun sendLoginStart(username: String, hasUUID: Boolean, uuid: UUID) = withContext(Dispatchers.IO) {
+        val loginStart = LoginStartPacket(username, hasUUID, uuid)
         sendPacket(loginStart.toByteArray())
 
         return@withContext readPacket()

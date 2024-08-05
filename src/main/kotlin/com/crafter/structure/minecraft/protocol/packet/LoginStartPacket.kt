@@ -7,6 +7,7 @@ import java.util.UUID
 
 class LoginStartPacket(
     private val username: String,
+    private val hasUUID: Boolean,
     private val uuid: UUID = UUID.randomUUID(),
     override val packetId: Int = 0x00
 ) : Packet {
@@ -16,6 +17,7 @@ class LoginStartPacket(
 
         stream.writeByte(packetId)
         stream.writeString(username)
+        stream.writeBoolean(hasUUID)
         stream.writeLong(uuid.mostSignificantBits)
         stream.writeLong(uuid.leastSignificantBits)
 
