@@ -42,11 +42,9 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         packetStream.write(packetData)
         outputStream!!.write(packet.toByteArray())
         outputStream!!.flush()
-
-        println(packet.toByteArray().contentToString())
     }
 
-    suspend fun readPacket(): String = withContext(Dispatchers.IO) {
+    private suspend fun readPacket(): String = withContext(Dispatchers.IO) {
         readVarInt(inputStream!!) // Length
         readVarInt(inputStream!!) // Packet ID
         val dataLength = readVarInt(inputStream!!)
@@ -87,8 +85,6 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
     suspend fun sendLoginAcknowledge() {
         val loginAcknowledge = LoginAcknowledge()
         sendPacket(loginAcknowledge.toByteArray())
-
-        request(loginAcknowledge)
     }
 
     override fun close() {
