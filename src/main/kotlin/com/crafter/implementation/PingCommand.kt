@@ -5,6 +5,8 @@ import com.crafter.discord.t9n.text
 import com.crafter.structure.minecraft.Color
 import com.crafter.structure.minecraft.Formatting
 import com.crafter.structure.minecraft.protocol.MinecraftProtocol
+import com.crafter.structure.minecraft.protocol.packet.RequestPacket
+import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakePacket
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
 import com.crafter.structure.utilities.UnstableApi
 import com.crafter.structure.utilities.embed
@@ -43,11 +45,10 @@ object PingCommand : SlashCommand(
         try {
             val serverInfo = getServerInfo(address, port, protocolVersion)
             val description = parseDescriptionText(
+                null,
                 serverInfo["description"],
                 event.userLocale
             )
-
-            println(description)
 
             event.hook.sendMessage(MessageCreateData.fromEmbeds(embed {
                 setTitle("Server Info")
@@ -75,7 +76,7 @@ object PingCommand : SlashCommand(
         return Json.decodeFromString(rawInfo)
     }
 
-    private fun parseDescriptionText(serverInfo: JsonElement?, locale: DiscordLocale): String {
+    private fun parseDescriptionText(previousKey: String? = null, serverInfo: JsonElement?, locale: DiscordLocale): String {
         if (serverInfo == null) return text("ping.no_description", "Server has no description", locale)
 
         val textBuilder = StringBuilder()
@@ -86,17 +87,17 @@ object PingCommand : SlashCommand(
                     if (key == "text") {
                         textBuilder.append(value.jsonPrimitive.content)
                     } else {
-                        textBuilder.append(parseDescriptionText(value, locale))
+                        textBuilder.append(parseDescriptionText(key, value, locale))
                     }
                 }
             }
             is JsonArray -> {
                 for (element in serverInfo) {
-                    textBuilder.append(parseDescriptionText(element, locale))
+                    textBuilder.append(parseDescriptionText(previousKey, element, locale))
                 }
             }
             is JsonPrimitive -> {
-                if (serverInfo.isString) {
+                if (serverInfo.isString && previousKey == "text") {
                     textBuilder.append(serverInfo.content)
                 }
             }
@@ -105,7 +106,6 @@ object PingCommand : SlashCommand(
         var text = textBuilder.toString()
         Color.entries.forEach { entry ->
             text = text.replace(entry.code, "")
-            text = text.replace(entry.name.lowercase(), "")
         }
         Formatting.entries.forEach { entry ->
             text = text.replace(entry.code, "")
