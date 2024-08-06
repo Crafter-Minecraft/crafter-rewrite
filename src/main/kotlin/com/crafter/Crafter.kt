@@ -12,7 +12,7 @@ object CrafterInstance {
         .build()
     private val initializables: List<Initializable> = listOf(T9nProtocol, Database, CommandRegistry(jda))
 
-    init { initializables.forEach { it.initialize() }}
+    init { initializables.forEach { it.initialize() } }
 }
 
 fun main() { CrafterInstance }
