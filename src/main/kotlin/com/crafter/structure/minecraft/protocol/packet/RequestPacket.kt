@@ -3,7 +3,7 @@ package com.crafter.structure.minecraft.protocol.packet
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 
-class RequestPacket(override val packetId: Int) : Packet {
+class RequestPacket(override val packetId: Int = 0x00) : Packet {
     override fun toByteArray(): ByteArray {
         val request = ByteArrayOutputStream()
         val requestStream = DataOutputStream(request)
