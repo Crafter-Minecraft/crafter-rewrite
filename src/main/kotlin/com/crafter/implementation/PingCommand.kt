@@ -2,20 +2,28 @@ package com.crafter.implementation
 
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
-import com.crafter.structure.minecraft.Color
-import com.crafter.structure.minecraft.Formatting
+import com.crafter.structure.minecraft.PARAGRAPH
+import com.crafter.structure.minecraft.clearText
 import com.crafter.structure.minecraft.protocol.MinecraftProtocol
-import com.crafter.structure.minecraft.protocol.packet.RequestPacket
-import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakePacket
+import com.crafter.structure.minecraft.protocol.ProtocolVersion
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
+import com.crafter.structure.utilities.ImageUtils
 import com.crafter.structure.utilities.UnstableApi
+import com.crafter.structure.utilities.capitalize
 import com.crafter.structure.utilities.embed
 import kotlinx.serialization.json.*
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import java.io.FileOutputStream
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+
 
 @OptIn(UnstableApi::class)
 object PingCommand : SlashCommand(
@@ -24,15 +32,12 @@ object PingCommand : SlashCommand(
     listOf(
         OptionData(OptionType.STRING, "server", "Server that you wanna check", true),
         OptionData(OptionType.STRING, "port", "Server port", false),
-        OptionData(OptionType.STRING, "version", "Server version", false)
+        OptionData(OptionType.STRING, "version", "Server version (eg. 1.12.2; Alpha 1.2.2; Beta 1.1_02)", false, true)
     )
 ) {
-    // TODO: Move it to minecraft and add more versions
-    private val protocolVersionMap = mapOf(
-        "1.8" to 47,
-        "1.12.2" to 340,
-        "1.19.3" to 761
-    )
+    private val protocolVersionMap = ProtocolVersion.entries.associateBy({ it.original.lowercase() }, { it.number })
+    private val versionProtocolMap = ProtocolVersion.entries.associateBy({ it.number }, { it.original })
+
 
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
@@ -40,20 +45,33 @@ object PingCommand : SlashCommand(
         val address = event.getOption("server")!!.asString
         val port = event.getOption("port")?.asInt ?: 25565
         val version = event.getOption("version")?.asString ?: "1.12.2"
-        val protocolVersion = protocolVersionMap[version] ?: 340
+        // We lowercasing it because it can be "Alpha 1.2.2", "Beta 1.1_02" etc.
+        val protocolVersion = protocolVersionMap[version.lowercase()]
+
+        if (protocolVersion == null) {
+            event.hook.sendMessage(text(
+                "ping.version_not_found",
+                "Please, specify other version. That version you provided not exists.",
+                event.userLocale
+            )).queue()
+            return
+        }
 
         try {
             val serverInfo = getServerInfo(address, port, protocolVersion)
-            val description = parseDescriptionText(
-                null,
-                serverInfo["description"],
-                event.userLocale
-            )
+            val messageBuilder = MessageCreateBuilder()
+                .setEmbeds(serverInfoEmbed(serverInfo, event.userLocale))
 
-            event.hook.sendMessage(MessageCreateData.fromEmbeds(embed {
-                setTitle("Server Info")
-                setDescription(description)
-            })).queue()
+            val favicon = serverInfo["favicon"]?.jsonPrimitive?.contentOrNull
+
+            if (favicon != null) {
+                val faviconFile = ImageUtils.decodeBase64ToFile(favicon, "favicon.png")
+                messageBuilder.setFiles(FileUpload.fromData(faviconFile))
+
+                faviconFile.delete()
+            }
+
+            event.hook.sendMessage(messageBuilder.build()).queue()
         } catch (e: Exception) {
             e.printStackTrace()
             event.hook.sendMessage(
@@ -69,6 +87,9 @@ object PingCommand : SlashCommand(
     }
 
     private suspend fun getServerInfo(address: String, port: Int, protocolVersion: Int): JsonObject {
+        // MinecraftProtocol(address, port).use {
+        //     println(it.sendLegacyPing())
+        // }
         val rawInfo = MinecraftProtocol(address, port).use {
             it.sendHandshake(protocolVersion, HandshakeState.State)
         }
@@ -103,13 +124,66 @@ object PingCommand : SlashCommand(
             }
         }
 
-        var text = textBuilder.toString()
-        Color.entries.forEach { entry ->
-            text = text.replace(entry.code, "")
+        return clearText(textBuilder.toString())
+    }
+
+    private fun parseLegacyServerDescription(serverInfo: String): String {
+        if (serverInfo.startsWith(PARAGRAPH)) {
+            val data = serverInfo.split("\u0000")
+
+            return ""
         }
-        Formatting.entries.forEach { entry ->
-            text = text.replace(entry.code, "")
+        return ""
+    }
+
+    private fun serverInfoEmbed(
+        serverInfo: JsonObject,
+        locale: DiscordLocale
+    ) = embed {
+        setTitle(text("ping.server_info.title", "Server Info", locale))
+
+        val serverDescription = parseDescriptionText(
+            null,
+            serverInfo["description"],
+            locale
+        )
+
+        setDescription(serverDescription)
+
+        val serverVersion = serverInfo["version"]?.jsonObject
+        if (serverVersion != null) {
+            val protocol = serverVersion["protocol"]?.jsonPrimitive?.content
+            val versionByProtocol = versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", "Unknown protocol", locale)
+
+            addField(
+                text("ping.server_info.version", "Server Version Info", locale),
+                "Brand: ${serverVersion["name"]?.jsonPrimitive?.content} " +
+                        "| Protocol: $protocol (${versionByProtocol})",
+                false
+            )
         }
-        return text
+
+        val playerData = serverInfo["players"]?.jsonObject
+        if (playerData != null) {
+            addField(
+                text("ping.server_info.players", "Players Info", locale),
+                "${text("ping.server_info.players.max", "Max Players", locale)}: ${playerData["max"]}\n" +
+                        "${text("ping.server_info.players.online", "Online", locale)}: ${playerData["online"]}",
+                false
+            )
+        }
+
+        val favicon = serverInfo["favicon"]?.jsonPrimitive?.contentOrNull
+        if (favicon != null) {
+            setThumbnail("attachment://favicon.png")
+        }
+    }
+
+    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {
+        // Why kotlin.text.String.capitalize() deprecated?
+        /**
+        * Here I'm using my extension for string, see [capitalize]
+        **/
+        return listOf("version" to protocolVersionMap.map { it.key.capitalize() })
     }
 }
