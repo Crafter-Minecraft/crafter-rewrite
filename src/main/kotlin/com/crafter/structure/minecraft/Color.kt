@@ -1,41 +1,47 @@
 package com.crafter.structure.minecraft
 
+const val PARAGRAPH = "§"
+
 enum class Color(val code: String) {
-    DARK_BLUE("§1"),
-    DARK_GREEN("§2"),
-    DARK_AQUA("§3"),
-    DARK_RED("§4"),
-    DARK_PURPLE("§5"),
-    DARK_GRAY("§8"),
-    MINECOIN_GOLD("§g"),
-    MATERIAL_QUARTZ("§h"),
-    MATERIAL_IRON("§i"),
-    MATERIAL_NETHERITE("§j"),
-    MATERIAL_REDSTONE("§m"),
-    MATERIAL_COPPER("§n"),
-    MATERIAL_GOLD("§p"),
-    MATERIAL_EMERALD("§q"),
-    MATERIAL_DIAMOND("§s"),
-    MATERIAL_LAPIS("§t"),
-    MATERIAL_AMETHYST("§u"),
-    GOLD("§6"),
-    GRAY("§7"),
-    BLUE("§9"),
-    GREEN("§a"),
-    AQUA("§b"),
-    RED("§c"),
-    LIGHT_PURPLE("§d"),
-    YELLOW("§e"),
-    WHITE("§f"),
-    BLACK("§0")
+    DARK_BLUE("${PARAGRAPH}1"),
+    DARK_GREEN("${PARAGRAPH}2"),
+    DARK_AQUA("${PARAGRAPH}3"),
+    DARK_RED("${PARAGRAPH}4"),
+    DARK_PURPLE("${PARAGRAPH}5"),
+    DARK_GRAY("${PARAGRAPH}8"),
+    MINECOIN_GOLD("${PARAGRAPH}g"),
+    MATERIAL_QUARTZ("${PARAGRAPH}h"),
+    MATERIAL_IRON("${PARAGRAPH}i"),
+    MATERIAL_NETHERITE("${PARAGRAPH}j"),
+    MATERIAL_REDSTONE("${PARAGRAPH}m"),
+    MATERIAL_COPPER("${PARAGRAPH}n"),
+    MATERIAL_GOLD("${PARAGRAPH}p"),
+    MATERIAL_EMERALD("${PARAGRAPH}q"),
+    MATERIAL_DIAMOND("${PARAGRAPH}s"),
+    MATERIAL_LAPIS("${PARAGRAPH}t"),
+    MATERIAL_AMETHYST("${PARAGRAPH}u"),
+    GOLD("${PARAGRAPH}6"),
+    GRAY("${PARAGRAPH}7"),
+    BLUE("${PARAGRAPH}9"),
+    GREEN("${PARAGRAPH}a"),
+    AQUA("${PARAGRAPH}b"),
+    RED("${PARAGRAPH}c"),
+    LIGHT_PURPLE("${PARAGRAPH}d"),
+    YELLOW("${PARAGRAPH}e"),
+    WHITE("${PARAGRAPH}f"),
+    BLACK("${PARAGRAPH}0")
 }
 
 enum class Formatting(val code: String) {
-    OBFUSCATED("§k"),
-    BOLD("§l"),
-    STRIKETHROUGH("§m"),
-    UNDERLINE("§n"),
-    ITALIC("§o"),
-    RESET("§r"),
-    RESET_ADD_COLOR("§r§f")
+    OBFUSCATED("${PARAGRAPH}k"),
+    BOLD("${PARAGRAPH}l"),
+    STRIKETHROUGH("${PARAGRAPH}m"),
+    UNDERLINE("${PARAGRAPH}n"),
+    ITALIC("${PARAGRAPH}o"),
+    RESET("${PARAGRAPH}r"),
+    RESET_ADD_COLOR("${PARAGRAPH}r${PARAGRAPH}f")
+}
+
+fun clearText(text: String): String {
+    return text.replace("${PARAGRAPH}.".toRegex(), "")
 }

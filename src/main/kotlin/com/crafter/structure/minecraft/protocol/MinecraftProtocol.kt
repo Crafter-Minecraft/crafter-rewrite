@@ -2,10 +2,11 @@
 
 package com.crafter.structure.minecraft.protocol
 
+import com.crafter.structure.minecraft.PARAGRAPH
 import com.crafter.structure.minecraft.protocol.packet.LoginAcknowledge
 import com.crafter.structure.minecraft.protocol.packet.LoginStartPacket
 import com.crafter.structure.minecraft.protocol.packet.Packet
-import com.crafter.structure.minecraft.protocol.packet.RequestPacket
+import com.crafter.structure.minecraft.protocol.packet.StatusRequestPacket
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakePacket
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
 import com.crafter.structure.utilities.UnstableApi
@@ -14,6 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.InputStreamReader
 import java.net.Socket
 import java.util.UUID
 
@@ -56,7 +58,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
     }
 
     private suspend fun request(packet: Packet) = withContext(Dispatchers.IO) {
-        val request = RequestPacket(packet.packetId)
+        val request = StatusRequestPacket(packet.packetId)
         sendPacket(request.toByteArray())
 
         val responseData = readPacket()
@@ -73,6 +75,26 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         } else ""
 
         return@withContext responseData
+    }
+
+    /**
+     Send it separately of other connections.
+     */
+    suspend fun sendLegacyPing() = withContext(Dispatchers.IO) {
+        val legacyPingPacket = StatusRequestPacket.Legacy()
+        val inputStreamReader = InputStreamReader(inputStream!!, Charsets.UTF_16BE)
+
+        // TODO: legacySendPacket function.
+        outputStream!!.write(legacyPingPacket.toByteArray())
+        outputStream!!.flush()
+
+        inputStream!!.read() // Packet ID
+        val dataLength = inputStreamReader.read()
+
+        val outputData = CharArray(dataLength)
+        inputStreamReader.read(outputData)
+
+        return@withContext String(outputData)
     }
 
     suspend fun sendLoginStart(username: String, hasUUID: Boolean, uuid: UUID) = withContext(Dispatchers.IO) {
