@@ -1,4 +1,4 @@
-package com.crafter
+package com.crafter.structure.utilities.ImbaUTiLS
 
 /** Otter **/
 object Otter {
