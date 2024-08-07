@@ -4,7 +4,9 @@ import com.crafter.discord.commands.SlashCommand
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.discord.t9n.text
 import com.crafter.structure.minecraft.rcon.RconController
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
@@ -64,13 +66,14 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
 
     private suspend fun rconExecuteCommand(event: SlashCommandInteractionEvent) {
         val data = RCONRepository.get(event.interaction.guild!!.id)!!
-        val rcon = RconController(
+        val responses = RconController(
             data["ip"].toString(),
             data["port"] as Int,
             RCONRepository.getRconPassword(data["password"].toString())
-        )
+        ).use {
+            it.send(event.getOption("command")!!.asString)
+        }
 
-        val responses = rcon.send(event.getOption("command")!!.asString)
         event.reply(
             text("rcon.execute.server_response", "Server response: ", event.userLocale) +
                     "```markdown\n" +
@@ -78,6 +81,8 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                     "```"
         ).queue()
     }
+
+    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
 
     init {
         commandData.addSubcommands(

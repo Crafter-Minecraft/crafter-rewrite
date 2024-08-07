@@ -2,8 +2,10 @@ package com.crafter.structure.minecraft.rcon
 
 import com.crafter.structure.minecraft.Color
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -11,7 +13,7 @@ import java.net.ConnectException
 import java.net.Socket
 import java.util.concurrent.TimeoutException
 
-class RconController(private val ip: String, private val port: Int, private val password: String) {
+class RconController(private val ip: String, private val port: Int, private val password: String) : Closeable {
     private val availableCharsRegex = """[a-zA-Zа-яА-Я\s.,!?;:'"-()«»—_`{}\[\]<>/\\|]""".toRegex()
     // MaGiC
     private val authResponseID = 167772160
@@ -84,17 +86,21 @@ class RconController(private val ip: String, private val port: Int, private val 
     }
 
     suspend fun send(command: String): List<RconResponse> {
-        authenticate()
         val response = sendCommand(command)
-        close()
 
         return response
     }
 
     @Throws(IOException::class)
-    fun close() {
+    override fun close() {
         socket?.close()
         inputStream?.close()
         outputStream?.close()
+    }
+
+    init {
+        runBlocking {
+            withContext(Dispatchers.IO) { authenticate() }
+        }
     }
 }
