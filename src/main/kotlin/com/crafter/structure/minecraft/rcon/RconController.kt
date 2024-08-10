@@ -100,7 +100,9 @@ class RconController(private val ip: String, private val port: Int, private val 
 
     init {
         runBlocking {
-            withContext(Dispatchers.IO) { authenticate() }
+            withContext(Dispatchers.IO) {
+                if (!authenticate()) throw IOException("Can't connect to RCON.")
+            }
         }
     }
 }

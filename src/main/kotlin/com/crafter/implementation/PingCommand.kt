@@ -38,7 +38,6 @@ object PingCommand : SlashCommand(
     private val protocolVersionMap = ProtocolVersion.entries.associateBy({ it.original.lowercase() }, { it.number })
     private val versionProtocolMap = ProtocolVersion.entries.associateBy({ it.number }, { it.original })
 
-
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
 
@@ -87,9 +86,9 @@ object PingCommand : SlashCommand(
     }
 
     private suspend fun getServerInfo(address: String, port: Int, protocolVersion: Int): JsonObject {
-        // MinecraftProtocol(address, port).use {
-        //     println(it.sendLegacyPing())
-        // }
+        MinecraftProtocol(address, port).use {
+            println(it.sendLegacyPing())
+        }
         val rawInfo = MinecraftProtocol(address, port).use {
             it.sendHandshake(protocolVersion, HandshakeState.State)
         }
@@ -128,12 +127,7 @@ object PingCommand : SlashCommand(
     }
 
     private fun parseLegacyServerDescription(serverInfo: String): String {
-        if (serverInfo.startsWith(PARAGRAPH)) {
-            val data = serverInfo.split("\u0000")
-
-            return ""
-        }
-        return ""
+        TODO("Make old description parser")
     }
 
     private fun serverInfoEmbed(

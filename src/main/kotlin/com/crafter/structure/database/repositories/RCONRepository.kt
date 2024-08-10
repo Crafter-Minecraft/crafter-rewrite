@@ -3,10 +3,10 @@ package com.crafter.structure.database.repositories
 import com.crafter.structure.database.Database.dbQuery
 import com.crafter.structure.database.api.Repository
 import com.crafter.structure.database.models.RCONModel
+import com.crafter.structure.database.models.RCONRestrictModel
 import com.crafter.structure.utilities.Encryption
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-
 
 object RCONRepository : Repository() {
     private val model = RCONModel
@@ -41,9 +41,11 @@ object RCONRepository : Repository() {
         return query
     }
 
-    override suspend fun delete(key: String): Unit = dbQuery {
-        model.deleteWhere { model.guildId eq key }
-    }
+    override suspend fun delete(key: String): Unit =
+        dbQuery {
+            model.deleteWhere { model.guildId eq key }
+            model.deleteWhere { RCONRestrictModel.guildId eq key }
+        }
 
     fun getRconPassword(password: String) = Encryption.decryptPassword(password)
 }

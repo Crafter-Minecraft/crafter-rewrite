@@ -3,13 +3,20 @@ package com.crafter.implementation.rcon
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.discord.t9n.text
+import com.crafter.structure.database.repositories.RCONRestrictionRepository
+import com.crafter.structure.minecraft.Helper
 import com.crafter.structure.minecraft.rcon.RconController
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.Command
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
+import org.jetbrains.exposed.sql.resolveColumnType
+import java.io.IOException
 
 // This command can be singleton, because everything here static
 object RconCommand : SlashCommand("rcon", "rcon.description") {
@@ -25,6 +32,7 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
         when (event.subcommandName) {
             "setup" -> rconSetup(event)
             "execute" -> rconExecuteCommand(event)
+            "restrict" -> rconRestrict(event)
         }
     }
 
@@ -66,23 +74,63 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
 
     private suspend fun rconExecuteCommand(event: SlashCommandInteractionEvent) {
         val data = RCONRepository.get(event.interaction.guild!!.id)!!
-        val responses = RconController(
-            data["ip"].toString(),
-            data["port"] as Int,
-            RCONRepository.getRconPassword(data["password"].toString())
-        ).use {
-            it.send(event.getOption("command")!!.asString)
+
+        if (!RCONRestrictionRepository.isUserExists(event.guild!!.id, event.user.id)) {
+            event.reply(text(
+                "rcon.execute.missing_permissions",
+                "Sorry, but you don't have enough permissions to execute RCON commands",
+                event.userLocale
+            )).queue()
+            return
         }
 
-        event.reply(
-            text("rcon.execute.server_response", "Server response: ", event.userLocale) +
-                    "```markdown\n" +
-                    responses.joinToString { response -> "# ${response.message}" } +
-                    "```"
-        ).queue()
+        try {
+            val responses = RconController(
+                data["ip"].toString(),
+                data["port"] as Int,
+                RCONRepository.getRconPassword(data["password"].toString())
+            ).use {
+                it.send(event.getOption("command")!!.asString)
+            }
+
+            event.reply(
+                text("rcon.execute.server_response", "Server response: ", event.userLocale) +
+                        "```markdown\n" +
+                        responses.joinToString { response -> "# ${response.message}" } +
+                        "```"
+            ).queue()
+        } catch (e: IOException) {
+            event.reply(text("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", event.userLocale)).queue()
+        }
     }
 
-    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
+    private suspend fun rconRestrict(event: SlashCommandInteractionEvent) {
+        val repository = RCONRestrictionRepository
+        val guildId = event.guild!!.id
+        val userId = event.getOption("user")!!.asUser.id
+
+        println(repository.isUserExists(guildId, userId))
+        if (repository.isUserExists(guildId, userId)) {
+            repository.deleteUser(guildId, userId)
+            event.reply(text(
+                "rcon.restrict.user_deleted",
+                "User was deleted and now does not have permissions to execute RCON commands",
+                event.userLocale
+            ))
+            return
+        }
+
+        repository.upsert(mapOf(
+            "guildId" to guildId,
+            "userId" to userId
+        ))
+
+        event.reply(text("rcon.restrict.user_added", "User added.", event.userLocale)).queue()
+    }
+
+    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {
+        return listOf("command" to Helper.AVAILABLE_MINECRAFT_COMMANDS)
+    }
 
     init {
         commandData.addSubcommands(
@@ -93,7 +141,11 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                     OptionData(OptionType.STRING, "password", "Your RCON password")
                 ),
             SubcommandData("execute", "Execute RCON command")
-                .addOption(OptionType.STRING, "command", "Command that should be executed on server.")
+                .addOption(OptionType.STRING, "command", "Command that should be executed on server.", true, true),
+            SubcommandData("restrict", "Restrict users who can execute RCON commands.")
+                .addOption(OptionType.USER, "user", "User that should can execute commands.", true)
         )
+
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))
     }
 }

@@ -3,6 +3,8 @@ package com.crafter.structure.database
 import com.crafter.Property
 import com.crafter.structure.database.models.RCONModel
 import com.crafter.discord.Initializable
+import com.crafter.structure.database.models.BridgeModel
+import com.crafter.structure.database.models.RCONRestrictModel
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Schema
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -35,6 +37,8 @@ object Database : Initializable {
 
     private fun register() {
         SchemaUtils.create(RCONModel)
+        SchemaUtils.create(BridgeModel)
+        SchemaUtils.create(RCONRestrictModel)
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =

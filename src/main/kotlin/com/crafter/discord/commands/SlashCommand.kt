@@ -1,6 +1,7 @@
 package com.crafter.discord.commands
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
@@ -14,7 +15,7 @@ abstract class SlashCommand(
     final override val name: String,
     final override val description: String,
     final override val options: List<OptionData> = emptyList()
-) : Command, IExecutableCommand<SlashCommandInteractionEvent> {
+) : Command, IExecutableCommand<SlashCommandInteractionEvent>, ListenerAdapter() {
     val commandData = Commands.slash(name, description)
 
     private val localization = ResourceBundleLocalizationFunction
