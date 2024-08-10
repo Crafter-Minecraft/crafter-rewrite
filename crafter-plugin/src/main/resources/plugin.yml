@@ -1,0 +1,7 @@
+name: CrafterDiscord
+version: '${version}'
+main: com.magm1go.craftermc.CrafterDiscord
+api-version: 1.19
+commands:
+  reload:
+    description: "Перезагрузить конфигурацию."
