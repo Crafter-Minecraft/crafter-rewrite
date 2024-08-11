@@ -109,7 +109,6 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
         val guildId = event.guild!!.id
         val userId = event.getOption("user")!!.asUser.id
 
-        println(repository.isUserExists(guildId, userId))
         if (repository.isUserExists(guildId, userId)) {
             repository.deleteUser(guildId, userId)
             event.reply(text(

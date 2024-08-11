@@ -97,13 +97,10 @@ object BridgeCommand : SlashCommand(
 
         val repository = BridgeRepository
 
-        println(repository.isEnabled(event.guild.id))
         if (repository.isEnabled(event.guild.id)) {
             val data = repository.get(event.guild.id) ?: return@runBlocking
             val channelId = data["channelId"]
 
-            println(channelId)
-            println(channelId == event.channel.id)
             if (channelId == event.channel.id) {
                 val rconData = RCONRepository.get(event.guild.id) ?: return@runBlocking
                 RconController(

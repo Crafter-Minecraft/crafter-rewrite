@@ -86,9 +86,9 @@ object PingCommand : SlashCommand(
     }
 
     private suspend fun getServerInfo(address: String, port: Int, protocolVersion: Int): JsonObject {
-        MinecraftProtocol(address, port).use {
+        /* MinecraftProtocol(address, port).use {
             println(it.sendLegacyPing())
-        }
+        } */
         val rawInfo = MinecraftProtocol(address, port).use {
             it.sendHandshake(protocolVersion, HandshakeState.State)
         }
