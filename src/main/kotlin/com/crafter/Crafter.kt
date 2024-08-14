@@ -12,7 +12,8 @@ object CrafterInstance {
     private val jda = JDABuilder.create(
         Property("bot.token").getString(),
         GatewayIntent.GUILD_MESSAGES,
-        GatewayIntent.MESSAGE_CONTENT
+        GatewayIntent.MESSAGE_CONTENT,
+        GatewayIntent.GUILD_MESSAGE_REACTIONS
     )
         .build()
     private val initializables: List<Initializable> = listOf(T9nProtocol, Database, CommandRegistry(jda))

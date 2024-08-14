@@ -1,4 +1,4 @@
-package com.crafter.implementation.rcon
+package com.crafter.implementation
 
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.structure.database.repositories.RCONRepository
@@ -9,13 +9,10 @@ import com.crafter.structure.minecraft.rcon.RconController
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
-import org.jetbrains.exposed.sql.resolveColumnType
 import java.io.IOException
 
 // This command can be singleton, because everything here static

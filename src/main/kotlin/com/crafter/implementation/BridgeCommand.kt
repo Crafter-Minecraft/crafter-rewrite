@@ -2,26 +2,35 @@ package com.crafter.implementation
 
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
+import com.crafter.implementation.listeners.ReactionListener
 import com.crafter.structure.database.repositories.BridgeRepository
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.structure.minecraft.Color
 import com.crafter.structure.minecraft.Formatting
 import com.crafter.structure.minecraft.rcon.RconController
+import com.crafter.structure.utilities.getDefaultScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
-import org.jetbrains.exposed.sql.resolveColumnType
+import kotlin.time.Duration.Companion.seconds
 
 object BridgeCommand : SlashCommand(
     "bridge",
     "Makes bridge between your minecraft server and discord"
 ) {
+    private const val WHITE_CHECK_MARK = "U+2705"
+    private val WHITE_CHECK_MARK_EMOJI = Emoji.fromUnicode(WHITE_CHECK_MARK)
+
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         when (event.subcommandName) {
             "enable" -> {
@@ -92,26 +101,53 @@ object BridgeCommand : SlashCommand(
 
     override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
 
-    override fun onMessageReceived(event: MessageReceivedEvent) = runBlocking {
-        if (event.author.isBot) return@runBlocking
+    override fun onMessageReceived(event: MessageReceivedEvent) {
+        getDefaultScope().launch {
+            if (event.author.isBot) return@launch
 
-        val repository = BridgeRepository
+            val repository = BridgeRepository
 
-        if (repository.isEnabled(event.guild.id)) {
-            val data = repository.get(event.guild.id) ?: return@runBlocking
-            val channelId = data["channelId"]
+            if (repository.isEnabled(event.guild.id)) {
+                val data = repository.get(event.guild.id) ?: return@launch
+                val channelId = data["channelId"]
 
-            if (channelId == event.channel.id) {
-                val rconData = RCONRepository.get(event.guild.id) ?: return@runBlocking
-                RconController(
-                    rconData["ip"].toString(),
-                    rconData["port"] as Int,
-                    RCONRepository.getRconPassword(rconData["password"].toString())
-                ).use {
-                    it.send("tellraw @a \"${Color.BLUE.code}[Discord]${Formatting.RESET_ADD_COLOR.code} ${event.message.author.name}: ${event.message.contentDisplay}\"")
+                if (channelId == event.channel.id) {
+                    val rconData = RCONRepository.get(event.guild.id) ?: return@launch
+                    val listener = ReactionListener(event.channel.id, event.author.id, WHITE_CHECK_MARK_EMOJI) {
+                        RconController(
+                            rconData["ip"].toString(),
+                            rconData["port"] as Int,
+                            RCONRepository.getRconPassword(rconData["password"].toString())
+                        ).use {
+                            var command =
+                                "tellraw @a \"${Color.BLUE.code}[Discord]${Formatting.RESET_ADD_COLOR.code} ${event.message.author.name}: ${event.message.contentDisplay} %s\""
+
+                            command = if (event.message.attachments.isNotEmpty()) {
+                                command.format("[attachments (${event.message.attachments.size})]")
+                            } else {
+                                command.format("")
+                            }
+
+                            it.send(command)
+
+                            event.message.clearReactions().queue()
+                        }
+                    }
+
+                    event.message.addReaction(WHITE_CHECK_MARK_EMOJI).queue()
+                    listener.register(event.jda)
+
+                    withTimeoutOrNull(5.seconds) {
+                        listener.await()
+                    } ?: clearReactionsAndUnregister(listener, event.message)
                 }
             }
         }
+    }
+
+    private fun clearReactionsAndUnregister(listener: ReactionListener, message: Message) {
+        message.clearReactions().queue()
+        listener.unregister(message.jda)
     }
 
     init {
