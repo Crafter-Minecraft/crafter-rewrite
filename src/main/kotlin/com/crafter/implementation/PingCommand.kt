@@ -2,13 +2,13 @@ package com.crafter.implementation
 
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
-import com.crafter.structure.minecraft.PARAGRAPH
 import com.crafter.structure.minecraft.clearText
 import com.crafter.structure.minecraft.protocol.MinecraftProtocol
 import com.crafter.structure.minecraft.protocol.ProtocolVersion
+import com.crafter.structure.minecraft.protocol.getByProtocolVersion
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
-import com.crafter.structure.utilities.ImageUtils
-import com.crafter.structure.utilities.UnstableApi
+import com.crafter.structure.utilities.Images
+import com.crafter.structure.utilities.annotations.UnstableApi
 import com.crafter.structure.utilities.capitalize
 import com.crafter.structure.utilities.embed
 import kotlinx.serialization.json.*
@@ -19,10 +19,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
-import net.dv8tion.jda.api.utils.messages.MessageCreateData
-import java.io.FileOutputStream
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 @OptIn(UnstableApi::class)
@@ -64,7 +60,7 @@ object PingCommand : SlashCommand(
             val favicon = serverInfo["favicon"]?.jsonPrimitive?.contentOrNull
 
             if (favicon != null) {
-                val faviconFile = ImageUtils.decodeBase64ToFile(favicon, "favicon.png")
+                val faviconFile = Images.decodeBase64ToFile(favicon, "favicon.png")
                 messageBuilder.setFiles(FileUpload.fromData(faviconFile))
 
                 faviconFile.delete()
@@ -90,7 +86,7 @@ object PingCommand : SlashCommand(
             println(it.sendLegacyPing())
         } */
         val rawInfo = MinecraftProtocol(address, port).use {
-            it.sendHandshake(protocolVersion, HandshakeState.State)
+            it.sendHandshake(getByProtocolVersion(protocolVersion), HandshakeState.State)
         }
 
         return Json.decodeFromString(rawInfo)
