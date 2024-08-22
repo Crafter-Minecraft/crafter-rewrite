@@ -7,7 +7,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
-object ImageUtils {
+object Images {
     @OptIn(ExperimentalEncodingApi::class)
     @Throws(IOException::class)
     fun decodeBase64ToFile(base64Image: String, filePath: String): File {
