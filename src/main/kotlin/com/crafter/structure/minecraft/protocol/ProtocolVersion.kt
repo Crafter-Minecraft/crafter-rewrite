@@ -1,6 +1,7 @@
 package com.crafter.structure.minecraft.protocol
 
 enum class ProtocolVersion(val original: String, val number: Int) {
+    V1_21_1("1.21.1", 767),
     V1_21("1.21", 767),
     V1_20_1("1.20.1", 763),
     V1_20("1.20", 762),
@@ -100,5 +101,17 @@ enum class ProtocolVersion(val original: String, val number: Int) {
     ALPHA_1_2_1("Alpha 1.2.1", 3),
     ALPHA_1_2_0("Alpha 1.2.0", 2),
     ALPHA_1_1_2("Alpha 1.1.2_01", 1),
-    ALPHA_1_0_16("Alpha 1.0.16", 0)
+    ALPHA_1_0_16("Alpha 1.0.16", 0);
+
+    infix fun <T : ProtocolVersion> greaterThan(other: T): Boolean = this.number > other.number
+    infix fun <T : ProtocolVersion> lowerThan(other: T): Boolean = this.number < other.number
+    infix fun <T : ProtocolVersion> greaterOrEqualThan(other: T): Boolean = this.number >= other.number
+    infix fun <T : ProtocolVersion> lowerOrEqualThan(other: T): Boolean = this.number <= other.number
+
+    infix fun greaterThan(other: Int): Boolean = this.number > other
+    infix fun lowerThan(other: Int): Boolean = this.number < other
+    infix fun greaterOrEqualThan(other: Int): Boolean = this.number >= other
+    infix fun lowerOrEqualThan(other: Int): Boolean = this.number <= other
 }
+
+fun getByProtocolVersion(protocol: Int): ProtocolVersion = ProtocolVersion.entries.first { it.number == protocol }
