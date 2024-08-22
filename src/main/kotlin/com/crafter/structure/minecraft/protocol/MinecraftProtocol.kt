@@ -2,25 +2,25 @@
 
 package com.crafter.structure.minecraft.protocol
 
-import com.crafter.structure.minecraft.PARAGRAPH
-import com.crafter.structure.minecraft.protocol.packet.LoginAcknowledge
 import com.crafter.structure.minecraft.protocol.packet.LoginStartPacket
 import com.crafter.structure.minecraft.protocol.packet.Packet
 import com.crafter.structure.minecraft.protocol.packet.StatusRequestPacket
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakePacket
 import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
-import com.crafter.structure.utilities.UnstableApi
-import kotlinx.coroutines.*
-import java.io.ByteArrayOutputStream
-import java.io.Closeable
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.InputStreamReader
+import com.crafter.structure.utilities.annotations.UnstableApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.io.*
 import java.net.Socket
-import java.util.UUID
+import java.util.*
+import java.util.zip.DeflaterOutputStream
+import java.util.zip.InflaterInputStream
 
 @UnstableApi
 class MinecraftProtocol(private val address: String, private val port: Int) : Closeable {
+    private var currentThreshold: Int = -1
+
     private var socket: Socket? = null
     private var outputStream: DataOutputStream? = null
     private var inputStream: DataInputStream? = null
@@ -36,39 +36,53 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         }
     }
 
-    private suspend fun sendPacket(packetData: ByteArray) = withContext(Dispatchers.IO) {
-        val packet = ByteArrayOutputStream()
-        val packetStream = DataOutputStream(packet)
+    suspend fun sendPacket(packet: Packet) = withContext(Dispatchers.IO) {
+        val out = ByteArrayOutputStream()
+        val packetStream = DataOutputStream(out)
+        val packetData = packet.toByteArray()
 
         packetStream.writeVarInt(packetData.size)
         packetStream.write(packetData)
-        outputStream!!.write(packet.toByteArray())
+        outputStream!!.write(out.toByteArray())
         outputStream!!.flush()
     }
 
     private suspend fun readPacket(): String = withContext(Dispatchers.IO) {
-        readVarInt(inputStream!!) // Length
+        val packetLength = readVarInt(inputStream!!)
         readVarInt(inputStream!!) // Packet ID
-        val dataLength = readVarInt(inputStream!!)
-        val responseData = ByteArray(dataLength)
 
-        inputStream!!.readFully(responseData)
+        if (currentThreshold > 0) {
+            val dataLength = readVarInt(inputStream!!)
 
-        return@withContext String(responseData)
+            if (dataLength == 0) {
+                val data = ByteArray(packetLength - 1)
+                inputStream!!.readFully(data)
+                return@withContext String(data)
+            } else {
+                val compressedData = ByteArray(packetLength - calculateVarIntSize(dataLength))
+                inputStream!!.readFully(compressedData)
+                val uncompressedData = decompressPacket(compressedData)
+                return@withContext String(uncompressedData)
+            }
+        } else {
+            val data = ByteArray(packetLength)
+            inputStream!!.readFully(data)
+            return@withContext String(data)
+        }
     }
 
     private suspend fun request(packet: Packet) = withContext(Dispatchers.IO) {
         val request = StatusRequestPacket(packet.packetId)
-        sendPacket(request.toByteArray())
+        sendPacket(request)
 
         val responseData = readPacket()
 
         return@withContext responseData
     }
 
-    suspend fun sendHandshake(protocolVersion: Int, state: HandshakeState): String = withContext(Dispatchers.IO) {
-        val handshakePacket = HandshakePacket(address, port, protocolVersion, state)
-        sendPacket(handshakePacket.toByteArray())
+    suspend fun sendHandshake(protocolVersion: ProtocolVersion, state: HandshakeState): String = withContext(Dispatchers.IO) {
+        val handshakePacket = HandshakePacket(address, port, protocolVersion.number, state)
+        sendPacket(handshakePacket)
 
         val responseData = if (state == HandshakeState.State) {
             request(handshakePacket)
@@ -97,22 +111,44 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         return@withContext String(outputData)
     }
 
-    suspend fun sendLoginStart(username: String, hasUUID: Boolean, uuid: UUID) = withContext(Dispatchers.IO) {
-        val loginStart = LoginStartPacket(username, hasUUID, uuid)
-        sendPacket(loginStart.toByteArray())
+    suspend fun sendLoginStart(protocolVersion: ProtocolVersion, username: String, hasUUID: Boolean, uuid: UUID) = withContext(Dispatchers.IO) {
+        val loginStart = LoginStartPacket(protocolVersion.number, username, hasUUID, uuid)
+        sendPacket(loginStart)
+
+        readVarInt(inputStream!!) // Length
+        val receivedPacketID = readVarInt(inputStream!!) // Packet ID
+
+        // 0x03 is Set Compression Packet.
+        // See https://wiki.vg/Protocol#Set_Compression
+        if (receivedPacketID == 0x03) {
+            val threshold = readVarInt(inputStream!!)
+            currentThreshold = threshold
+        }
 
         return@withContext readPacket()
-    }
-
-    suspend fun sendLoginAcknowledge() {
-        val loginAcknowledge = LoginAcknowledge()
-        sendPacket(loginAcknowledge.toByteArray())
     }
 
     override fun close() {
         socket?.close()
         inputStream?.close()
         outputStream?.close()
+    }
+
+    private fun compressPacket(data: ByteArray): ByteArray {
+        val output = ByteArrayOutputStream()
+        val stream = DeflaterOutputStream(output)
+
+        stream.write(data)
+        stream.close()
+
+        return output.toByteArray()
+    }
+
+    private fun decompressPacket(data: ByteArray): ByteArray {
+        val input = ByteArrayInputStream(data)
+        val inflater = InflaterInputStream(input)
+
+        return inflater.readBytes()
     }
 
     init {
