@@ -6,7 +6,7 @@ import com.crafter.structure.minecraft.clearText
 import com.crafter.structure.minecraft.protocol.MinecraftProtocol
 import com.crafter.structure.minecraft.protocol.ProtocolVersion
 import com.crafter.structure.minecraft.protocol.getByProtocolVersion
-import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
+import com.crafter.structure.minecraft.protocol.packet.clientbound.handshake.HandshakeState
 import com.crafter.structure.utilities.Images
 import com.crafter.structure.utilities.annotations.UnstableApi
 import com.crafter.structure.utilities.capitalize

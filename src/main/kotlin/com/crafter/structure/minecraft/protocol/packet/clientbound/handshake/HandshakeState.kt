@@ -1,4 +1,4 @@
-package com.crafter.structure.minecraft.protocol.packet.handshake
+package com.crafter.structure.minecraft.protocol.packet.clientbound.handshake
 
 enum class HandshakeState(val type: Int) {
     State(1),

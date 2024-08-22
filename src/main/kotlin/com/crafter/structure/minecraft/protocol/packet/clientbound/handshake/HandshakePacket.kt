@@ -1,4 +1,4 @@
-package com.crafter.structure.minecraft.protocol.packet.handshake
+package com.crafter.structure.minecraft.protocol.packet.clientbound.handshake
 
 import com.crafter.structure.minecraft.protocol.packet.Packet
 import com.crafter.structure.minecraft.protocol.writeString

@@ -1,6 +1,7 @@
-package com.crafter.structure.minecraft.protocol.packet
+package com.crafter.structure.minecraft.protocol.packet.clientbound
 
 import com.crafter.structure.minecraft.protocol.ProtocolVersion
+import com.crafter.structure.minecraft.protocol.packet.Packet
 import com.crafter.structure.minecraft.protocol.writeString
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream

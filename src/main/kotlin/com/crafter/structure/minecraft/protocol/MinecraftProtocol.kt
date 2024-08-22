@@ -2,11 +2,11 @@
 
 package com.crafter.structure.minecraft.protocol
 
-import com.crafter.structure.minecraft.protocol.packet.LoginStartPacket
+import com.crafter.structure.minecraft.protocol.packet.clientbound.LoginStartPacket
 import com.crafter.structure.minecraft.protocol.packet.Packet
-import com.crafter.structure.minecraft.protocol.packet.StatusRequestPacket
-import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakePacket
-import com.crafter.structure.minecraft.protocol.packet.handshake.HandshakeState
+import com.crafter.structure.minecraft.protocol.packet.clientbound.StatusRequestPacket
+import com.crafter.structure.minecraft.protocol.packet.clientbound.handshake.HandshakePacket
+import com.crafter.structure.minecraft.protocol.packet.clientbound.handshake.HandshakeState
 import com.crafter.structure.utilities.annotations.UnstableApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
