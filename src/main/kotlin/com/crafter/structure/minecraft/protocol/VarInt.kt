@@ -42,3 +42,15 @@ fun readVarInt(inputStream: DataInputStream): Int {
 
     return result
 }
+
+fun calculateVarIntSize(value: Int): Int {
+    var size = 0
+    var intValue = value
+
+    do {
+        size++
+        intValue = intValue ushr 7
+    } while (intValue != 0)
+
+    return size
+}
