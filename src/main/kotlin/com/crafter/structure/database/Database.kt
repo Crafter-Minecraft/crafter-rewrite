@@ -17,14 +17,15 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
  **/
 object Database : Initializable {
     override fun initialize() {
-        val driver = Property("storage.driverClassName").getString()
-        val jdbcUrl = Property("storage.jdbcURL").getString()
-        val password = Property("storage.password").getString()
+        val driver = Property("storage.db.driverClassName").getString()
+        val jdbcUrl = Property("storage.db.jdbcURL").getString()
+        val username = Property("storage.db.username").getString()
+        val password = Property("storage.db.password").getString()
 
         val database = ExposedDatabase.connect(
             jdbcUrl,
             driver,
-            user = "magmigo",
+            user = username,
             password = password
         )
 
