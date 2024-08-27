@@ -1,5 +1,6 @@
 package com.crafter.structure.utilities
 
+import com.crafter.Property
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -26,10 +27,13 @@ object Encryption {
      *    we will encounter a padding error.
      */
     private const val ALGORITHM = "AES"
-    private val staticIv = IvParameterSpec((0..15).map { it.toByte() }.toByteArray())
+    private val staticBteArray = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+    private val staticIv = IvParameterSpec(staticBteArray)
 
     private val cipher = Cipher.getInstance("$ALGORITHM/CBC/PKCS5Padding")
-    private val secretKey = SecretKeySpec(System.getenv("CRAFTER_SECRET_KEY").toByteArray(), ALGORITHM)
+    // Set this as VM option property.
+    // -Dsecret=YOUR_SECRET_KEY
+    private val secretKey = SecretKeySpec(Property("secret", systemProperty = true).getString().toByteArray(), ALGORITHM)
 
     @OptIn(ExperimentalEncodingApi::class)
     fun encryptPassword(password: String): String {

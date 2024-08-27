@@ -1,9 +1,12 @@
 package com.crafter
 
+import java.io.FileNotFoundException
 import java.util.*
 
-class Property(private val value: String, private val filename: String = "application") {
-    private val properties by lazy { loadProperties() }
+class Property(private val value: String, private val filename: String = "application", val systemProperty: Boolean = false) {
+    private val properties = loadProperties()
+
+    @Throws(IllegalArgumentException::class)
     private fun loadProperties(): Properties {
         val properties = Properties()
         val propertiesStream = ClassLoader.getSystemClassLoader().getResourceAsStream("$filename.properties")
@@ -13,5 +16,10 @@ class Property(private val value: String, private val filename: String = "applic
         return properties
     }
 
-    fun getString(): String = properties.getProperty(value)
+    @Throws(FileNotFoundException::class, NullPointerException::class)
+    fun getString(): String = if (systemProperty) {
+        System.getProperty(value)
+    } else {
+        properties.getProperty(value)
+    }
 }
