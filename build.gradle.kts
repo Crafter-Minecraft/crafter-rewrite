@@ -1,6 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm") version "2.0.0"
     kotlin("plugin.serialization") version "2.0.0"
+
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "com.crafter"
@@ -27,6 +31,23 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 }
 
-kotlin {
-    jvmToolchain(21)
+kotlin.jvmToolchain(21)
+
+tasks {
+    jar {
+        dependsOn("shadowJar")
+        from(shadowJar.get().archiveFile)
+        manifest {
+            attributes["Main-Class"] = "com.crafter.CrafterKt"
+        }
+    }
+
+    withType<ShadowJar> {
+        manifest {
+            attributes["Main-Class"] = "com.crafter.CrafterKt"
+        }
+        archiveClassifier.set("")
+        mergeServiceFiles()
+    }
 }
+

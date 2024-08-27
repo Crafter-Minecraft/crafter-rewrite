@@ -1,0 +1,7 @@
+# PUT NEEDED DATA HERE AND REMOVE .example SUFFIX FROM FILENAME
+bot.token=YOUR_TOKEN
+
+storage.db.driverClassName=org.postgresql.Driver
+storage.db.jdbcURL=jdbc:postgresql://localhost:5432/postgres
+storage.db.username=admin
+storage.db.password=admin
