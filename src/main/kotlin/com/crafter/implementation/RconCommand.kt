@@ -47,14 +47,18 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                     "Please change your RCON password. Your password is unsafe.",
                     event.userLocale
                 )
-            ).queue()
+            ).setEphemeral(true).queue()
             return
         }
 
         if (!ip.matches(ipRegex) || ip.startsWith("127") || ip in ignoredIps) {
-            event.reply(text("rcon.setup.invalid_ip", "You provided invalid RCON IP", event.userLocale)).queue()
+            event.reply(text("rcon.setup.invalid_ip", "You provided invalid RCON IP", event.userLocale))
+                .setEphemeral(true)
+                .queue()
         } else if (!port.matches(portRegex)) {
-            event.reply(text("rcon.setup.invalid_port", "You provided invalid RCON port", event.userLocale)).queue()
+            event.reply(text("rcon.setup.invalid_port", "You provided invalid RCON port", event.userLocale))
+                .setEphemeral(true)
+                .queue()
         } else {
             RCONRepository.upsert(
                 mapOf(
@@ -65,15 +69,31 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                 )
             )
 
-            event.reply(text("rcon.setup.success", "Your RCON settings was saved.", event.userLocale)).queue()
+            event.reply(text(
+                "rcon.setup.success",
+                "Your RCON settings was saved.",
+                event.userLocale
+            ))
+                .setEphemeral(true)
+                .queue()
         }
     }
 
     private suspend fun rconExecuteCommand(event: SlashCommandInteractionEvent) {
-        val data = RCONRepository.get(event.interaction.guild!!.id)!!
+        event.deferReply().queue()
+        val data = RCONRepository.get(event.interaction.guild!!.id)
+
+        if (data == null) {
+            event.hook.sendMessage(text(
+                "rcon.execute.null_data",
+                "Sorry, but you haven't set up RCON.",
+                event.userLocale
+            )).queue()
+            return
+        }
 
         if (!RCONRestrictionRepository.isUserExists(event.guild!!.id, event.user.id)) {
-            event.reply(text(
+            event.hook.sendMessage(text(
                 "rcon.execute.missing_permissions",
                 "Sorry, but you don't have enough permissions to execute RCON commands",
                 event.userLocale
@@ -90,14 +110,22 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                 it.send(event.getOption("command")!!.asString)
             }
 
-            event.reply(
-                text("rcon.execute.server_response", "Server response: ", event.userLocale) +
-                        "```markdown\n" +
-                        responses.joinToString { response -> "# ${response.message}" } +
-                        "```"
-            ).queue()
+            val responseText = responses.joinToString { response -> "# ${response.message}" }
+
+            if (responseText.isEmpty()) {
+                event.hook
+                    .sendMessage(text("rcon.execute.command_issued", "Command issued successfully without response.", event.userLocale))
+                    .queue()
+            } else {
+                event.hook.sendMessage(
+                    text("rcon.execute.server_response", "Server response: ", event.userLocale) +
+                            "```markdown\n" +
+                            responseText +
+                            "```"
+                ).queue()
+            }
         } catch (e: IOException) {
-            event.reply(text("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", event.userLocale)).queue()
+            event.hook.sendMessage(text("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", event.userLocale)).queue()
         }
     }
 
@@ -112,7 +140,7 @@ object RconCommand : SlashCommand("rcon", "rcon.description") {
                 "rcon.restrict.user_deleted",
                 "User was deleted and now does not have permissions to execute RCON commands",
                 event.userLocale
-            ))
+            )).queue()
             return
         }
 
