@@ -24,7 +24,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 @OptIn(UnstableApi::class)
 object PingCommand : SlashCommand(
     "ping",
-    "ping.description",
+    "Ping server you want",
     listOf(
         OptionData(OptionType.STRING, "server", "Server that you wanna check", true),
         OptionData(OptionType.STRING, "port", "Server port", false),

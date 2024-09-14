@@ -16,12 +16,12 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
   A database singleton.
  **/
 object Database : Initializable {
-    override fun initialize() {
-        val driver = Property("storage.db.driverClassName").getString()
-        val jdbcUrl = Property("storage.db.jdbcURL").getString()
-        val username = Property("storage.db.username").getString()
-        val password = Property("storage.db.password").getString()
+    private val driver by Property("storage.db.driverClassName")
+    private val jdbcUrl by Property("storage.db.jdbcURL")
+    private val username by Property("storage.db.username")
+    private val password by Property("storage.db.password")
 
+    override fun initialize() {
         val database = ExposedDatabase.connect(
             jdbcUrl,
             driver,

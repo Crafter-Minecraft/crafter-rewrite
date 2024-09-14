@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import java.io.IOException
 
 // This command can be singleton, because everything here static
-object RconCommand : SlashCommand("rcon", "rcon.description") {
+object RconCommand : SlashCommand("rcon", "Main RCON command") {
     private val ignoredIps = listOf("255.255.255.255", "0.0.0.0", "::1")
     private val ipRegex = """\b((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\b""".toRegex()
     private val portRegex = """\b(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[0-9]{1,4})\b""".toRegex()

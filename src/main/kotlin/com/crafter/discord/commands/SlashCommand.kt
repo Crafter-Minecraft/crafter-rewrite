@@ -34,8 +34,7 @@ abstract class SlashCommand(
 
     init {
         commandData
-            .addOptions(options)
             .setLocalizationFunction(localization)
-            .setGuildOnly(true)
+            .addOptions(options)
     }
 }

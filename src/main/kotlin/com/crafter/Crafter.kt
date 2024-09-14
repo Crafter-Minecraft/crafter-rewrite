@@ -14,8 +14,8 @@ object CrafterInstance {
         GatewayIntent.GUILD_MESSAGES,
         GatewayIntent.MESSAGE_CONTENT,
         GatewayIntent.GUILD_MESSAGE_REACTIONS
-    )
-        .build()
+    ).build()
+
     private val initializables: List<Initializable> = listOf(T9nProtocol, Database, CommandRegistry(jda))
 
     init {

@@ -2,6 +2,7 @@ package com.crafter
 
 import java.io.FileNotFoundException
 import java.util.*
+import kotlin.reflect.KProperty
 
 class Property(private val value: String, private val filename: String = "application", val systemProperty: Boolean = false) {
     private val properties = loadProperties()
@@ -22,4 +23,6 @@ class Property(private val value: String, private val filename: String = "applic
     } else {
         properties.getProperty(value)
     }
+
+    operator fun getValue(ref: Any?, property: KProperty<*>): String = getString()
 }
