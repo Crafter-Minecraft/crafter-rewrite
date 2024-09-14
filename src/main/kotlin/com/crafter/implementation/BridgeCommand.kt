@@ -34,41 +34,44 @@ object BridgeCommand : SlashCommand(
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         when (event.subcommandName) {
             "enable" -> {
-                var enabled = BridgeRepository.isEnabled(event.guild!!.id)
+                val guildId = event.guild!!.id
 
-                val isRconEnabled = RCONRepository.get(event.guild!!.id) != null
-                if (!isRconEnabled && !enabled) {
-                    event.reply(text(
+                var isBridgeEnabled = BridgeRepository.isEnabled(guildId)
+                val isRconEnabled = RCONRepository.get(guildId) != null
+
+                if (!isRconEnabled && !isBridgeEnabled) {
+                    event.replyLocalized(
                         "bridge.rcon_not_enabled",
-                        "Sorry, but bridge can't work without RCON. Setup RCON and try again.",
+                        "Sorry, but the bridge can't work without RCON. Please set up RCON and try again.",
                         event.userLocale
-                    )).queue()
+                    )
                     return
                 }
 
-                val data = BridgeRepository.get(event.guild!!.id)
-                val toUpsert = mutableMapOf<String, Any>("guildId" to event.guild!!.id, "isEnabled" to enabled)
+                val bridgeData = BridgeRepository.get(guildId)
+                val toUpsert = mutableMapOf<String, Any>(
+                    "guildId" to guildId,
+                    "isEnabled" to !isBridgeEnabled
+                )
 
-                if (data != null) {
-                    toUpsert["isEnabled"] = !enabled
-                    toUpsert["channelId"] = data["channelId"].toString()
+                bridgeData?.let {
+                    toUpsert["channelId"] = it["channelId"].toString()
                 }
 
-                enabled = toUpsert["isEnabled"] as Boolean
-
+                isBridgeEnabled = toUpsert["isEnabled"] as Boolean
                 BridgeRepository.upsert(toUpsert)
+
+                val statusText = text(
+                    "bridge.toggle.value.${if (isBridgeEnabled) "enabled" else "disabled"}",
+                    if (isBridgeEnabled) "enabled" else "disabled",
+                    event.userLocale
+                )
 
                 val responseText = text(
                     "bridge.toggled",
                     "Bridge was %s",
                     event.userLocale
-                ).format(
-                    text(
-                        "bridge.toggle.value.${if (enabled) "enabled" else "disabled"}",
-                        if (enabled) "enabled" else "disabled",
-                        event.userLocale
-                    )
-                )
+                ).format(statusText)
 
                 event.reply(responseText).queue()
             }
@@ -80,11 +83,7 @@ object BridgeCommand : SlashCommand(
 
                 if (data != null && data["channelId"] == channelId) {
                     repository.delete(guildId)
-                    event.reply(text(
-                        "bridge.channel.deleted",
-                        "Channel was deleted as bridge.",
-                        event.userLocale
-                    )).queue()
+                    event.replyLocalized("bridge.channel.deleted", "Channel was deleted as bridge.", event.userLocale)
                     return
                 }
 
@@ -94,7 +93,7 @@ object BridgeCommand : SlashCommand(
                     "channelId" to channelId
                 ))
 
-                event.reply(text("bridge.channel.updated", "Channel was set.", event.userLocale)).queue()
+                event.replyLocalized("bridge.channel.updated", "Channel was set.", event.userLocale)
             }
         }
     }
@@ -119,8 +118,7 @@ object BridgeCommand : SlashCommand(
                             rconData["port"] as Int,
                             RCONRepository.getRconPassword(rconData["password"].toString())
                         ).use {
-                            var command =
-                                "tellraw @a \"${Color.BLUE.code}[Discord]${Formatting.RESET_ADD_COLOR.code} ${event.message.author.name}: ${event.message.contentDisplay} %s\""
+                            var command = "tellraw @a \"${Color.BLUE.code}[Discord]${Formatting.RESET_ADD_COLOR.code} ${event.message.author.name}: ${event.message.contentDisplay} %s\""
 
                             command = if (event.message.attachments.isNotEmpty()) {
                                 command.format("[attachments (${event.message.attachments.size})]")
@@ -137,9 +135,7 @@ object BridgeCommand : SlashCommand(
                     event.message.addReaction(WHITE_CHECK_MARK_EMOJI).queue()
                     listener.register(event.jda)
 
-                    withTimeoutOrNull(5.seconds) {
-                        listener.await()
-                    } ?: clearReactionsAndUnregister(listener, event.message)
+                    withTimeoutOrNull(5.seconds) { listener.await() } ?: clearReactionsAndUnregister(listener, event.message)
                 }
             }
         }

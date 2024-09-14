@@ -17,9 +17,12 @@ import java.io.IOException
 
 // This command can be singleton, because everything here static
 object RconCommand : SlashCommand("rcon", "Main RCON command") {
-    private val ignoredIps = listOf("255.255.255.255", "0.0.0.0", "::1")
-    private val ipRegex = """\b((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\b""".toRegex()
-    private val portRegex = """\b(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[0-9]{1,4})\b""".toRegex()
+    private val ignoredIps: List<String> = listOf(
+        "255.255.255.255", "0.0.0.0",
+        "::1", "::"
+    )
+    private val ipRegex: Regex = """\b((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\b""".toRegex()
+    private val portRegex: Regex = """\b(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[0-9]{1,4})\b""".toRegex()
 
     private fun isUnsafePassword(password: String): Boolean =
         ClassLoader.getSystemClassLoader().getResource("unsafe_passwords.txt")!!.readText()
@@ -73,59 +76,56 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
                 "rcon.setup.success",
                 "Your RCON settings was saved.",
                 event.userLocale
-            ))
-                .setEphemeral(true)
-                .queue()
+            )).setEphemeral(true).queue()
         }
     }
 
     private suspend fun rconExecuteCommand(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
-        val data = RCONRepository.get(event.interaction.guild!!.id)
+
+        val guildId = event.interaction.guild!!.id
+        val userId = event.user.id
+        val userLocale = event.userLocale
+
+        val data = RCONRepository.get(guildId)
 
         if (data == null) {
-            event.hook.sendMessage(text(
-                "rcon.execute.null_data",
-                "Sorry, but you haven't set up RCON.",
-                event.userLocale
-            )).queue()
+            event.replyWithMessage("rcon.execute.null_data", "Sorry, but you haven't set up RCON.", userLocale)
             return
         }
 
-        if (!RCONRestrictionRepository.isUserExists(event.guild!!.id, event.user.id)) {
-            event.hook.sendMessage(text(
-                "rcon.execute.missing_permissions",
-                "Sorry, but you don't have enough permissions to execute RCON commands",
-                event.userLocale
-            )).queue()
+        if (!RCONRestrictionRepository.isUserExists(guildId, userId)) {
+            event.replyWithMessage("rcon.execute.missing_permissions", "Sorry, but you don't have enough permissions to execute RCON commands", userLocale)
+            return
+        }
+
+        val command = event.getOption("command")?.asString
+        if (command.isNullOrEmpty()) {
+            event.replyWithMessage("rcon.execute.empty_command", "Command cannot be empty.", userLocale)
             return
         }
 
         try {
-            val responses = RconController(
+            val rconController = RconController(
                 data["ip"].toString(),
                 data["port"] as Int,
                 RCONRepository.getRconPassword(data["password"].toString())
-            ).use {
-                it.send(event.getOption("command")!!.asString)
-            }
+            )
 
-            val responseText = responses.joinToString { response -> "# ${response.message}" }
+            val responses = rconController.use { it.send(command) }
+            val responseText = responses.joinToString(separator = "\n") { response -> "# ${response.message}" }
 
-            if (responseText.isEmpty()) {
-                event.hook
-                    .sendMessage(text("rcon.execute.command_issued", "Command issued successfully without response.", event.userLocale))
-                    .queue()
+            if (responseText.isBlank()) {
+                event.replyWithMessage("rcon.execute.command_issued", "Command issued successfully without response.", userLocale)
             } else {
-                event.hook.sendMessage(
-                    text("rcon.execute.server_response", "Server response: ", event.userLocale) +
-                            "```markdown\n" +
-                            responseText +
-                            "```"
-                ).queue()
+                event.replyWithMessage("rcon.execute.server_response", "Server response:", userLocale) {
+                    append("```markdown\n$responseText\n```")
+                }
             }
         } catch (e: IOException) {
-            event.hook.sendMessage(text("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", event.userLocale)).queue()
+            event.replyWithMessage("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", userLocale)
+        } catch (e: Exception) {
+            event.replyWithMessage("rcon.execute.error", "An unexpected error occurred.", userLocale)
         }
     }
 
@@ -136,11 +136,11 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
 
         if (repository.isUserExists(guildId, userId)) {
             repository.deleteUser(guildId, userId)
-            event.reply(text(
+            event.replyLocalized(
                 "rcon.restrict.user_deleted",
                 "User was deleted and now does not have permissions to execute RCON commands",
                 event.userLocale
-            )).queue()
+            )
             return
         }
 
@@ -149,7 +149,7 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
             "userId" to userId
         ))
 
-        event.reply(text("rcon.restrict.user_added", "User added.", event.userLocale)).queue()
+        event.replyLocalized("rcon.restrict.user_added", "User added.", event.userLocale)
     }
 
     override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {

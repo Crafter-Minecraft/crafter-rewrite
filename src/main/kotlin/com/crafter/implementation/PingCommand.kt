@@ -44,11 +44,11 @@ object PingCommand : SlashCommand(
         val protocolVersion = protocolVersionMap[version.lowercase()]
 
         if (protocolVersion == null) {
-            event.hook.sendMessage(text(
+            event.replyWithMessage(
                 "ping.version_not_found",
                 "Please, specify other version. That version you provided not exists.",
                 event.userLocale
-            )).queue()
+            )
             return
         }
 
@@ -69,15 +69,13 @@ object PingCommand : SlashCommand(
             event.hook.sendMessage(messageBuilder.build()).queue()
         } catch (e: Exception) {
             e.printStackTrace()
-            event.hook.sendMessage(
-                text(
-                    "ping.cant_retrieve_server",
-                    "Make sure IP / port is valid. Other possible issues:\n" +
-                            "1. Invalid version\n" +
-                            "2. Server is offline",
-                    event.userLocale
-                )
-            ).queue()
+            event.replyWithMessage(
+                "ping.cant_retrieve_server",
+                "Make sure IP / port is valid. Other possible issues:\n" +
+                        "1. Invalid version\n" +
+                        "2. Server is offline",
+                event.userLocale
+            )
         }
     }
 
@@ -164,9 +162,7 @@ object PingCommand : SlashCommand(
         }
 
         val favicon = serverInfo["favicon"]?.jsonPrimitive?.contentOrNull
-        if (favicon != null) {
-            setThumbnail("attachment://favicon.png")
-        }
+        if (favicon != null) setThumbnail("attachment://favicon.png")
     }
 
     override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {

@@ -1,5 +1,6 @@
 package com.crafter.discord.commands
 
+import com.crafter.discord.t9n.text
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.DiscordLocale
@@ -30,6 +31,26 @@ abstract class SlashCommand(
     fun addSubCommand(vararg subCommands: SubcommandData): SlashCommand {
         commandData.addSubcommands(subCommands.toList())
         return this
+    }
+
+    fun SlashCommandInteractionEvent.replyWithMessage(
+        translationKey: String,
+        defaultMessage: String,
+        userLocale: DiscordLocale,
+        appendMessage: StringBuilder.() -> Unit = {}
+    ) {
+        val message = text(translationKey, defaultMessage, userLocale) + StringBuilder().apply(appendMessage).toString()
+        this.hook.sendMessage(message).queue()
+    }
+
+    fun SlashCommandInteractionEvent.replyLocalized(
+        translationKey: String,
+        defaultMessage: String,
+        userLocale: DiscordLocale,
+        appendMessage: StringBuilder.() -> Unit = {}
+    ) {
+        val message = text(translationKey, defaultMessage, userLocale) + StringBuilder().apply(appendMessage).toString()
+        this.reply(message).queue()
     }
 
     init {
