@@ -12,6 +12,7 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 
@@ -29,6 +30,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+
+    implementation("com.github.boticord:botikotlin:2.1.1.5")
 }
 
 kotlin.jvmToolchain(21)
