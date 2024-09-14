@@ -5,7 +5,7 @@ import java.util.*
 import kotlin.reflect.KProperty
 
 class Property(private val value: String, private val filename: String = "application", val systemProperty: Boolean = false) {
-    private val properties = loadProperties()
+    private val properties: Properties = loadProperties()
 
     @Throws(IllegalArgumentException::class)
     private fun loadProperties(): Properties {

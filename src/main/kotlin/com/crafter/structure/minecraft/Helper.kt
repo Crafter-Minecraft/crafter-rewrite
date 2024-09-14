@@ -1,7 +1,7 @@
 package com.crafter.structure.minecraft
 
 object Helper {
-    val AVAILABLE_MINECRAFT_COMMANDS = listOf(
+    val AVAILABLE_MINECRAFT_COMMANDS: List<String> = listOf(
         "ban",
         "ban-ip",
         "banlist",

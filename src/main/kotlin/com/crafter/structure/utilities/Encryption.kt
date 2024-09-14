@@ -30,7 +30,7 @@ object Encryption {
     private val staticBteArray = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
     private val staticIv = IvParameterSpec(staticBteArray)
 
-    private val cipher = Cipher.getInstance("$ALGORITHM/CBC/PKCS5Padding")
+    private val cipher: Cipher = Cipher.getInstance("$ALGORITHM/CBC/PKCS5Padding")
     // Set this as VM option property.
     // -Dsecret=YOUR_SECRET_KEY
     private val secretKey = SecretKeySpec(Property("secret", systemProperty = true).getString().toByteArray(), ALGORITHM)
@@ -38,7 +38,7 @@ object Encryption {
     @OptIn(ExperimentalEncodingApi::class)
     fun encryptPassword(password: String): String {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, staticIv)
-        val cipherText = cipher.doFinal(password.toByteArray())
+        val cipherText: ByteArray = cipher.doFinal(password.toByteArray())
 
         return Base64.encode(cipherText)
     }
@@ -46,7 +46,7 @@ object Encryption {
     @OptIn(ExperimentalEncodingApi::class)
     fun decryptPassword(password: String): String {
         cipher.init(Cipher.DECRYPT_MODE, secretKey, staticIv)
-        val cipherText = cipher.doFinal(Base64.decode(password))
+        val cipherText: ByteArray = cipher.doFinal(Base64.decode(password))
 
         return String(cipherText)
     }

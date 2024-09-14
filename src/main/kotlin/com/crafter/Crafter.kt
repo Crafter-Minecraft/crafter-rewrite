@@ -16,7 +16,11 @@ object CrafterInstance {
         GatewayIntent.GUILD_MESSAGE_REACTIONS
     ).build()
 
-    private val initializables: List<Initializable> = listOf(T9nProtocol, Database, CommandRegistry(jda))
+    private val initializables: List<Initializable> = listOf(
+        T9nProtocol,
+        Database,
+        CommandRegistry(jda)
+    )
 
     init {
         jda.awaitReady()

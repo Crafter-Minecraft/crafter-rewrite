@@ -11,7 +11,7 @@ object Images {
     @OptIn(ExperimentalEncodingApi::class)
     @Throws(IOException::class)
     fun decodeBase64ToFile(base64Image: String, filePath: String): File {
-        val base64Data = base64Image.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
+        val base64Data: String = base64Image.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
         val imageBytes: ByteArray = Base64.decode(base64Data)
 
         val file = File(filePath)
