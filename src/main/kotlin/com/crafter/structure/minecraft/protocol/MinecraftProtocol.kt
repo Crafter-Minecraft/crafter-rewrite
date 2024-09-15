@@ -73,7 +73,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         }
     }
 
-    private suspend fun request(packet: Packet) = withContext(Dispatchers.IO) {
+    private suspend fun sendStatusRequest(packet: Packet) = withContext(Dispatchers.IO) {
         val request = StatusRequestPacket(packet.packetId)
         sendPacket(request)
 
@@ -86,7 +86,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         val handshakePacket = HandshakePacket(address, port, protocolVersion.number, state)
         sendPacket(handshakePacket)
 
-        val responseData = if (state == HandshakeState.State) { request(handshakePacket) } else ""
+        val responseData = if (state == HandshakeState.State) { sendStatusRequest(handshakePacket) } else ""
 
         return@withContext responseData
     }
