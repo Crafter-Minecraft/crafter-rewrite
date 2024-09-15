@@ -36,7 +36,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         }
     }
 
-    suspend fun sendPacket(packet: Packet) = withContext(Dispatchers.IO) {
+    private suspend fun sendPacket(packet: Packet) = withContext(Dispatchers.IO) {
         val out = ByteArrayOutputStream()
         val packetStream = DataOutputStream(out)
         val packetData = packet.toByteArray()
@@ -49,23 +49,25 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
 
     private suspend fun readPacket(): String = withContext(Dispatchers.IO) {
         val packetLength = readVarInt(inputStream!!)
-        readVarInt(inputStream!!) // Packet ID
+        val packetId = readVarInt(inputStream!!)
+        val realPacketLength = packetLength - calculateVarIntSize(packetId)
 
         if (currentThreshold > 0) {
             val dataLength = readVarInt(inputStream!!)
 
-            if (dataLength == 0) {
+            return@withContext if (dataLength == 0) {
                 val data = ByteArray(packetLength - 1)
                 inputStream!!.readFully(data)
-                return@withContext String(data)
+                String(data)
             } else {
-                val compressedData = ByteArray(packetLength - calculateVarIntSize(dataLength))
+                val compressedData = ByteArray(realPacketLength)
                 inputStream!!.readFully(compressedData)
                 val uncompressedData = decompressPacket(compressedData)
-                return@withContext String(uncompressedData)
+                String(uncompressedData)
             }
         } else {
-            val data = ByteArray(packetLength)
+            val prefixedLength = readVarInt(inputStream!!)
+            val data = ByteArray(prefixedLength)
             inputStream!!.readFully(data)
             return@withContext String(data)
         }
@@ -84,9 +86,7 @@ class MinecraftProtocol(private val address: String, private val port: Int) : Cl
         val handshakePacket = HandshakePacket(address, port, protocolVersion.number, state)
         sendPacket(handshakePacket)
 
-        val responseData = if (state == HandshakeState.State) {
-            request(handshakePacket)
-        } else ""
+        val responseData = if (state == HandshakeState.State) { request(handshakePacket) } else ""
 
         return@withContext responseData
     }
