@@ -25,6 +25,7 @@ object CrafterInstance {
 
     private val initializables: List<Initializable> = listOf(
         T9nProtocol,
+        Database,
         CommandRegistry(jda)
     )
 
