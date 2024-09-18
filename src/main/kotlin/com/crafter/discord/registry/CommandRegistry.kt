@@ -4,6 +4,7 @@ import com.crafter.discord.Initializable
 import com.crafter.implementation.BridgeCommand
 import com.crafter.implementation.PingCommand
 import com.crafter.implementation.RconCommand
+import com.crafter.implementation.bot.BotCommand
 import com.crafter.structure.utilities.getDefaultScope
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
@@ -35,8 +36,7 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
 
             autoCompleteOptions?.forEach {
                 if (event.name == command.name && it.first == event.focusedOption.name) {
-                    val options = it.second
-                        .filter { word -> word.startsWith(event.focusedOption.value) }
+                    val options = it.second.filter { word -> word.startsWith(event.focusedOption.value) }
 
                     event.replyChoiceStrings(options.subList(0, if (options.size > 25) 25 else options.size)).queue()
                 }

@@ -31,12 +31,13 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 
-    implementation("com.github.boticord:botikotlin:2.1.1.5")
+    implementation("com.github.boticord:botikotlin:2.1.2.6")
 }
 
 kotlin.jvmToolchain(21)
 
 tasks {
+    // 55GB jar moment
     jar {
         dependsOn("shadowJar")
         from(shadowJar.get().archiveFile)
@@ -53,4 +54,3 @@ tasks {
         mergeServiceFiles()
     }
 }
-
