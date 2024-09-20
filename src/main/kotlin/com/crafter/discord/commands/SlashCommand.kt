@@ -19,9 +19,10 @@ abstract class SlashCommand(
 ) : Command, IExecutableCommand<SlashCommandInteractionEvent>, ListenerAdapter() {
     val commandData = Commands.slash(name, description)
 
-    private val localization = ResourceBundleLocalizationFunction
-        .fromBundle(ResourceBundle.getBundle("translate/slash_commands"), DiscordLocale.RUSSIAN)
-        .build()
+    private val localization = ResourceBundleLocalizationFunction.fromBundles(
+        "translate/slash_commands",
+        DiscordLocale.RUSSIAN
+    ).build()
 
     fun addCommandGroup(vararg groupList: SubcommandGroupData): SlashCommand {
         commandData.addSubcommandGroups(groupList.toList())

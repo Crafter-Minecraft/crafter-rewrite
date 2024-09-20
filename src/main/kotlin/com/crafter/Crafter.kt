@@ -46,8 +46,12 @@ object CrafterInstance {
                 )
 
                 notifications { event ->
+                    val eventName = event.event
+
+                    if (eventName == "pong") return@notifications
+
                     boticordChannel?.sendMessage(
-                        "Boticord Event Name: ${event.event}:\n" +
+                        "Boticord Event Name: ${eventName}:\n" +
                         "ID: ${event.data.id}\n" +
                         "Type: ${event.data.type}\n" +
                         "User: ${event.data.user}\n" +
