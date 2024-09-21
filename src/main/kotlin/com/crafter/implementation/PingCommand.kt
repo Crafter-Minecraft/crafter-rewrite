@@ -46,7 +46,6 @@ object PingCommand : SlashCommand(
         if (protocolVersion == null) {
             event.replyWithMessage(
                 "ping.version_not_found",
-                "Please, specify other version. That version you provided not exists.",
                 event.userLocale
             )
             return
@@ -71,9 +70,6 @@ object PingCommand : SlashCommand(
             e.printStackTrace()
             event.replyWithMessage(
                 "ping.cant_retrieve_server",
-                "Make sure IP / port is valid. Other possible issues:\n" +
-                        "1. Invalid version\n" +
-                        "2. Server is offline",
                 event.userLocale
             )
         }
@@ -91,7 +87,7 @@ object PingCommand : SlashCommand(
     }
 
     private fun parseDescriptionText(previousKey: String? = null, serverInfo: JsonElement?, locale: DiscordLocale): String {
-        if (serverInfo == null) return text("ping.no_description", "Server has no description", locale)
+        if (serverInfo == null) return text("ping.no_description", locale)
 
         val textBuilder = StringBuilder()
             .append(" ")
@@ -128,7 +124,7 @@ object PingCommand : SlashCommand(
         serverInfo: JsonObject,
         locale: DiscordLocale
     ) = embed {
-        setTitle(text("ping.server_info.title", "Server Info", locale))
+        setTitle(text("ping.server_info.title", locale))
 
         val serverDescription = parseDescriptionText(
             null,
@@ -141,10 +137,10 @@ object PingCommand : SlashCommand(
         val serverVersion = serverInfo["version"]?.jsonObject
         if (serverVersion != null) {
             val protocol = serverVersion["protocol"]?.jsonPrimitive?.content
-            val versionByProtocol = versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", "Unknown protocol", locale)
+            val versionByProtocol = versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", locale)
 
             addField(
-                text("ping.server_info.version", "Server Version Info", locale),
+                text("ping.server_info.version", locale),
                 "Brand: ${serverVersion["name"]?.jsonPrimitive?.content} " +
                         "| Protocol: $protocol (${versionByProtocol})",
                 false
@@ -154,9 +150,9 @@ object PingCommand : SlashCommand(
         val playerData = serverInfo["players"]?.jsonObject
         if (playerData != null) {
             addField(
-                text("ping.server_info.players", "Players Info", locale),
-                "${text("ping.server_info.players.max", "Max Players", locale)}: ${playerData["max"]}\n" +
-                        "${text("ping.server_info.players.online", "Online", locale)}: ${playerData["online"]}",
+                text("ping.server_info.players", locale),
+                "${text("ping.server_info.players.max", locale)}: ${playerData["max"]}\n" +
+                        "${text("ping.server_info.players.online", locale)}: ${playerData["online"]}",
                 false
             )
         }

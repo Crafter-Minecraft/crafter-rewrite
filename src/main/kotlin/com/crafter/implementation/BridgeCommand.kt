@@ -42,7 +42,6 @@ object BridgeCommand : SlashCommand(
                 if (!isRconEnabled && !isBridgeEnabled) {
                     event.replyLocalized(
                         "bridge.rcon_not_enabled",
-                        "Sorry, but the bridge can't work without RCON. Please set up RCON and try again.",
                         event.userLocale
                     )
                     return
@@ -63,13 +62,11 @@ object BridgeCommand : SlashCommand(
 
                 val statusText = text(
                     "bridge.toggle.value.${if (isBridgeEnabled) "enabled" else "disabled"}",
-                    if (isBridgeEnabled) "enabled" else "disabled",
                     event.userLocale
                 )
 
                 val responseText = text(
                     "bridge.toggled",
-                    "Bridge was %s",
                     event.userLocale
                 ).format(statusText)
 
@@ -83,7 +80,7 @@ object BridgeCommand : SlashCommand(
 
                 if (data != null && data["channelId"] == channelId) {
                     repository.delete(guildId)
-                    event.replyLocalized("bridge.channel.deleted", "Channel was deleted as bridge.", event.userLocale)
+                    event.replyLocalized("bridge.channel.deleted", event.userLocale)
                     return
                 }
 
@@ -93,7 +90,7 @@ object BridgeCommand : SlashCommand(
                     "channelId" to channelId
                 ))
 
-                event.replyLocalized("bridge.channel.updated", "Channel was set.", event.userLocale)
+                event.replyLocalized("bridge.channel.updated", event.userLocale)
             }
         }
     }

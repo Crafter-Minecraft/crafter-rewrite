@@ -15,9 +15,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
     private val defaultScope = getDefaultScope()
     private val slashCommandList = listOf(
-        RconCommand,
         PingCommand,
-        BridgeCommand
+        RconCommand,
+        BridgeCommand,
     )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
@@ -33,7 +33,6 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
             val command = slashCommandList.firstOrNull { it.name == event.name }
 
             val autoCompleteOptions = command?.autoComplete(event)
-
             autoCompleteOptions?.forEach {
                 if (event.name == command.name && it.first == event.focusedOption.name) {
                     val options = it.second.filter { word -> word.startsWith(event.focusedOption.value) }
@@ -46,7 +45,12 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
 
     override fun initialize() {
         jda.addEventListener(this)
-        slashCommandList.forEach { jda.addEventListener(it) }
+
+        slashCommandList.forEach { command ->
+            command.setup()
+
+            jda.addEventListener(command)
+        }
 
         jda.updateCommands()
             .addCommands(slashCommandList.map { it.commandData })

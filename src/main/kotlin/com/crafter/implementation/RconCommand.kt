@@ -47,7 +47,6 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
             event.reply(
                 text(
                     "rcon.setup.unsafe_password",
-                    "Please change your RCON password. Your password is unsafe.",
                     event.userLocale
                 )
             ).setEphemeral(true).queue()
@@ -55,11 +54,11 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
         }
 
         if (!ip.matches(ipRegex) || ip.startsWith("127") || ip in ignoredIps) {
-            event.reply(text("rcon.setup.invalid_ip", "You provided invalid RCON IP", event.userLocale))
+            event.reply(text("rcon.setup.invalid_ip", event.userLocale))
                 .setEphemeral(true)
                 .queue()
         } else if (!port.matches(portRegex)) {
-            event.reply(text("rcon.setup.invalid_port", "You provided invalid RCON port", event.userLocale))
+            event.reply(text("rcon.setup.invalid_port", event.userLocale))
                 .setEphemeral(true)
                 .queue()
         } else {
@@ -74,7 +73,6 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
 
             event.reply(text(
                 "rcon.setup.success",
-                "Your RCON settings was saved.",
                 event.userLocale
             )).setEphemeral(true).queue()
         }
@@ -90,18 +88,18 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
         val data = RCONRepository.get(guildId)
 
         if (data == null) {
-            event.replyWithMessage("rcon.execute.null_data", "Sorry, but you haven't set up RCON.", userLocale)
+            event.replyWithMessage("rcon.execute.null_data", userLocale)
             return
         }
 
         if (!RCONRestrictionRepository.isUserExists(guildId, userId)) {
-            event.replyWithMessage("rcon.execute.missing_permissions", "Sorry, but you don't have enough permissions to execute RCON commands", userLocale)
+            event.replyWithMessage("rcon.execute.missing_permissions", userLocale)
             return
         }
 
         val command = event.getOption("command")?.asString
         if (command.isNullOrEmpty()) {
-            event.replyWithMessage("rcon.execute.empty_command", "Command cannot be empty.", userLocale)
+            event.replyWithMessage("rcon.execute.empty_command", userLocale)
             return
         }
 
@@ -116,16 +114,16 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
             val responseText = responses.joinToString(separator = "\n") { response -> "# ${response.message}" }
 
             if (responseText.isBlank()) {
-                event.replyWithMessage("rcon.execute.command_issued", "Command issued successfully without response.", userLocale)
+                event.replyWithMessage("rcon.execute.command_issued", userLocale)
             } else {
-                event.replyWithMessage("rcon.execute.server_response", "Server response:", userLocale) {
+                event.replyWithMessage("rcon.execute.server_response", userLocale) {
                     append("```markdown\n$responseText\n```")
                 }
             }
         } catch (e: IOException) {
-            event.replyWithMessage("rcon.execute.cant_connect", "Sorry, but I can't connect to RCON.", userLocale)
+            event.replyWithMessage("rcon.execute.cant_connect", userLocale)
         } catch (e: Exception) {
-            event.replyWithMessage("rcon.execute.error", "An unexpected error occurred.", userLocale)
+            event.replyWithMessage("rcon.execute.error", userLocale)
         }
     }
 
@@ -138,7 +136,6 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
             repository.deleteUser(guildId, userId)
             event.replyLocalized(
                 "rcon.restrict.user_deleted",
-                "User was deleted and now does not have permissions to execute RCON commands",
                 event.userLocale
             )
             return
@@ -149,7 +146,7 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
             "userId" to userId
         ))
 
-        event.replyLocalized("rcon.restrict.user_added", "User added.", event.userLocale)
+        event.replyLocalized("rcon.restrict.user_added", event.userLocale)
     }
 
     override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {
