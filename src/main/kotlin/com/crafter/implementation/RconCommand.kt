@@ -157,9 +157,9 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
         commandData.addSubcommands(
             SubcommandData("setup", "Setting up your RCON")
                 .addOptions(
-                    OptionData(OptionType.STRING, "ip", "Your RCON IP"),
-                    OptionData(OptionType.STRING, "port", "Your RCON port"),
-                    OptionData(OptionType.STRING, "password", "Your RCON password")
+                    OptionData(OptionType.STRING, "ip", "Your RCON IP", true),
+                    OptionData(OptionType.STRING, "port", "Your RCON port", true),
+                    OptionData(OptionType.STRING, "password", "Your RCON password", true)
                 ),
             SubcommandData("execute", "Execute RCON command")
                 .addOption(OptionType.STRING, "command", "Command that should be executed on server.", true, true),
