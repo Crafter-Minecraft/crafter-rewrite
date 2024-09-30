@@ -15,12 +15,15 @@ import kotlinx.coroutines.withTimeoutOrNull
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.channel.ChannelType
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import kotlin.time.Duration.Companion.seconds
 
@@ -73,12 +76,19 @@ object BridgeCommand : SlashCommand(
                 event.reply(responseText).queue()
             }
             "channel" -> {
-                val repository = BridgeRepository
-                val guildId = event.guild!!.id
-                val data = repository.get(guildId)
-                val channelId = event.getOption("channel")!!.asChannel.id
+                val guild = event.guild!!
+                val channel = event.getOption("channel")!!.asChannel as TextChannel
 
-                if (data != null && data["channelId"] == channelId) {
+                if (!channel.canTalk()) {
+                    event.replyLocalized("bridge.channel.not_enough_perms", event.userLocale)
+                    return
+                }
+
+                val repository = BridgeRepository
+                val guildId = guild.id
+                val data = repository.get(guildId)
+
+                if (data != null && data["channelId"] == channel.id) {
                     repository.delete(guildId)
                     event.replyLocalized("bridge.channel.deleted", event.userLocale)
                     return
@@ -87,7 +97,7 @@ object BridgeCommand : SlashCommand(
                 repository.upsert(mapOf(
                     "guildId" to event.guild!!.id,
                     "isEnabled" to true,
-                    "channelId" to channelId
+                    "channelId" to channel.id
                 ))
 
                 event.replyLocalized("bridge.channel.updated", event.userLocale)
@@ -147,7 +157,10 @@ object BridgeCommand : SlashCommand(
         commandData.addSubcommands(
             SubcommandData("enable", "Toggle bridge between servers"),
             SubcommandData("channel", "Channel that should be bridge between servers")
-                .addOption(OptionType.CHANNEL, "channel", "Channel", true)
+                .addOptions(
+                    OptionData(OptionType.CHANNEL, "channel", "Channel", true)
+                        .setChannelTypes(ChannelType.TEXT)
+                )
         )
 
         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))
