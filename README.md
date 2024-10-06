@@ -1,5 +1,3 @@
-Sure! Here’s the updated README with the specified configuration details included:
-
 # Crafter Bot
 
 Crafter is a Discord bot that specializes in RCON and creates a bridge between your Minecraft server and Discord. It provides convenient features for server management and player interaction.
