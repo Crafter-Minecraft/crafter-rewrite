@@ -37,7 +37,6 @@ dependencies {
 kotlin.jvmToolchain(21)
 
 tasks {
-    // 55GB jar moment
     jar {
         dependsOn("shadowJar")
         from(shadowJar.get().archiveFile)
@@ -50,7 +49,6 @@ tasks {
         manifest {
             attributes["Main-Class"] = "com.crafter.CrafterKt"
         }
-        archiveClassifier.set("")
         mergeServiceFiles()
     }
 }

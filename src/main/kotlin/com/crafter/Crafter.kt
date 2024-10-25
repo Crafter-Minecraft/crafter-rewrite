@@ -34,30 +34,32 @@ object CrafterInstance {
 
         initializables.forEach { it.initialize() }
 
-        val boticordChannel = jda.getTextChannelById(boticordChannelId)
-        val botId = jda.users[0].idLong
-        getDefaultScope().launch {
-            boticord(token = boticordToken) {
-                autopost(
-                    botId,
-                    null,
-                    null,
-                    jda.guilds.size
-                )
+        if (boticordToken.isNotEmpty()) {
+            val boticordChannel = jda.getTextChannelById(boticordChannelId)
+            val botId = jda.users[0].idLong
+            getDefaultScope().launch {
+                boticord(token = boticordToken) {
+                    autopost(
+                        botId,
+                        null,
+                        null,
+                        jda.guilds.size
+                    )
 
-                notifications { event ->
-                    val eventName = event.event
+                    notifications { event ->
+                        val eventName = event.event
 
-                    if (eventName == "pong") return@notifications
+                        if (eventName == "pong") return@notifications
 
-                    boticordChannel?.sendMessage(
-                        "Boticord Event Name: ${eventName}:\n" +
-                        "ID: ${event.data.id}\n" +
-                        "Type: ${event.data.type}\n" +
-                        "User: ${event.data.user}\n" +
-                        "Payload: ${event.data.payload}\n" +
-                        "Happened: ${event.data.happened}\n"
-                    )?.queue()
+                        boticordChannel?.sendMessage(
+                            "Boticord Event Name: ${eventName}:\n" +
+                                    "ID: ${event.data.id}\n" +
+                                    "Type: ${event.data.type}\n" +
+                                    "User: ${event.data.user}\n" +
+                                    "Payload: ${event.data.payload}\n" +
+                                    "Happened: ${event.data.happened}\n"
+                        )?.queue()
+                    }
                 }
             }
         }

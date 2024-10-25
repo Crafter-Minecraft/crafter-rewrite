@@ -17,6 +17,8 @@ import java.io.IOException
 
 // This command can be singleton, because everything here static
 object RconCommand : SlashCommand("rcon", "Main RCON command") {
+    private var unsafePasswords: String? = null
+
     private val ignoredIps: List<String> = listOf(
         "255.255.255.255", "0.0.0.0",
         "::1", "::"
@@ -24,9 +26,14 @@ object RconCommand : SlashCommand("rcon", "Main RCON command") {
     private val ipRegex: Regex = """\b((25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\b""".toRegex()
     private val portRegex: Regex = """\b(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[0-9]{1,4})\b""".toRegex()
 
-    private fun isUnsafePassword(password: String): Boolean =
-        ClassLoader.getSystemClassLoader().getResource("unsafe_passwords.txt")!!.readText()
-            .contains(password, ignoreCase = true)
+    private fun isUnsafePassword(password: String): Boolean {
+        if (unsafePasswords.isNullOrEmpty()) {
+            unsafePasswords = ClassLoader.getSystemClassLoader().getResource("unsafe_passwords.txt")?.readText()
+                ?: throw IllegalStateException("Can't read unsafe_passwords.txt.")
+        }
+
+        return unsafePasswords?.contains(password, ignoreCase = true) ?: false
+    }
 
     override suspend fun execute(event: SlashCommandInteractionEvent) {
         when (event.subcommandName) {
