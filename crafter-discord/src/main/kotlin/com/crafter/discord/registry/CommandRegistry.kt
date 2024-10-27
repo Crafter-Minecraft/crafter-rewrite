@@ -19,8 +19,7 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
         PingCommand,
         RconCommand,
         BridgeCommand,
-        GuidelineCommand,
-        BotCommand
+        GuidelineCommand
     )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
