@@ -7,9 +7,7 @@ plugins {
 group = "com.crafter"
 version = "1.0"
 
-dependencies {
-    implementation(project(":crafter-protocol"))
-}
+dependencies { implementation(project(":crafter-protocol")) }
 
 tasks {
     jar {
@@ -18,9 +16,7 @@ tasks {
     }
 
     withType<ShadowJar> {
-        manifest {
-            attributes["Main-Class"] = "com.crafter.CrafterKt"
-        }
+        manifest { attributes["Main-Class"] = "com.crafter.CrafterKt" }
         mergeServiceFiles()
     }
 }
