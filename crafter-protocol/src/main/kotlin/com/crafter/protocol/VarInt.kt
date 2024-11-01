@@ -1,4 +1,4 @@
-package protocol
+package com.crafter.protocol
 
 import java.io.DataInputStream
 import java.io.DataOutputStream

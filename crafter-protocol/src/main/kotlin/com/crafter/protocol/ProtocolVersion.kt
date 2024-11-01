@@ -1,4 +1,4 @@
-package protocol
+package com.crafter.protocol
 
 enum class ProtocolVersion(val original: String, val number: Int) {
     V1_21_1("1.21.1", 767),

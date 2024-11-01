@@ -1,12 +1,11 @@
 package com.crafter.discord.registry
 
 import com.crafter.discord.Initializable
+import com.crafter.getDefaultScope
 import com.crafter.implementation.BridgeCommand
 import com.crafter.implementation.GuidelineCommand
 import com.crafter.implementation.PingCommand
 import com.crafter.implementation.RconCommand
-import com.crafter.implementation.bot.BotCommand
-import com.crafter.structure.utilities.getDefaultScope
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent

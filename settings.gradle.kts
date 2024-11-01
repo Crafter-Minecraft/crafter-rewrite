@@ -3,4 +3,8 @@ plugins {
 }
 rootProject.name = "crafter-rewrite"
 
-include("crafter-discord", "crafter-protocol")
+include(
+    "crafter-common",
+    "crafter-discord",
+    "crafter-protocol"
+)

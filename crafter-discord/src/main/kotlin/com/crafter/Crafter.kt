@@ -4,7 +4,6 @@ import com.crafter.discord.Initializable
 import com.crafter.discord.registry.CommandRegistry
 import com.crafter.discord.t9n.T9nProtocol
 import com.crafter.structure.database.Database
-import com.crafter.structure.utilities.getDefaultScope
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.requests.GatewayIntent

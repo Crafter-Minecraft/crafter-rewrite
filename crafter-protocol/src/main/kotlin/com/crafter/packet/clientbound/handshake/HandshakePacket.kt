@@ -1,8 +1,8 @@
-package protocol.packet.clientbound.handshake
+package com.crafter.protocol.packet.clientbound.handshake
 
-import protocol.packet.Packet
-import protocol.writeString
-import protocol.writeVarInt
+import com.crafter.protocol.packet.Packet
+import com.crafter.protocol.writeString
+import com.crafter.protocol.writeVarInt
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 

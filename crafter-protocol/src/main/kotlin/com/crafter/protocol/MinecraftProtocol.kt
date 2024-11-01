@@ -1,22 +1,23 @@
 @file:Suppress("unused")
 
-package protocol
+package com.crafter.protocol
 
-import protocol.packet.clientbound.LoginStartPacket
-import protocol.packet.Packet
-import protocol.packet.clientbound.StatusRequestPacket
-import protocol.packet.clientbound.handshake.HandshakePacket
+import com.crafter.annotations.UnstableApi
+import com.crafter.protocol.packet.clientbound.LoginStartPacket
+import com.crafter.protocol.packet.Packet
+import com.crafter.protocol.packet.clientbound.StatusRequestPacket
+import com.crafter.protocol.packet.clientbound.handshake.HandshakePacket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import protocol.packet.clientbound.handshake.HandshakeState
+import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
 import java.io.*
 import java.net.Socket
 import java.util.*
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
 
-// @UnstableApi
+@UnstableApi
 class MinecraftProtocol(private val address: String, private val port: Int) : Closeable {
     private var currentThreshold: Int = -1
 

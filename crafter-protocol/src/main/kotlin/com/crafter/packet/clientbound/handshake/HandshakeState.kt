@@ -1,4 +1,4 @@
-package protocol.packet.clientbound.handshake
+package com.crafter.protocol.packet.clientbound.handshake
 
 enum class HandshakeState(val type: Int) {
     State(1),

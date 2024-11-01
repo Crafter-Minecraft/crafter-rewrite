@@ -1,4 +1,4 @@
-package rcon
+package com.crafter.rcon
 
 enum class PacketType(val type: Int) {
     SERVERDATA_RESPONSE_VALUE(0),

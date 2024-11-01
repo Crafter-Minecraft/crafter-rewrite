@@ -42,3 +42,11 @@ bin/
 .DS_Store
 
 application.properties
+.idea/dataSources.xml
+.idea/discord.xml
+.idea/encodings.xml
+.idea/gradle.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/misc.xml
+.idea/sqldialects.xml
+.kotlin/sessions/kotlin-compiler-436973336240921604.salive

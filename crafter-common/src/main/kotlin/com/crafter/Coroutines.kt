@@ -1,4 +1,4 @@
-package com.crafter.structure.utilities
+package com.crafter
 
 import kotlinx.coroutines.*
 import java.util.concurrent.Executor

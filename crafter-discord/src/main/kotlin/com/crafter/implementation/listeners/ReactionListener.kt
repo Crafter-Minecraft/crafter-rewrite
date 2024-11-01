@@ -1,6 +1,6 @@
 package com.crafter.implementation.listeners
 
-import com.crafter.structure.utilities.getDefaultScope
+import com.crafter.getDefaultScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA

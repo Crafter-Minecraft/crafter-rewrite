@@ -1,3 +1,5 @@
+package com.crafter
+
 object Helper {
     val AVAILABLE_MINECRAFT_COMMANDS: List<String> = listOf(
         "ban",

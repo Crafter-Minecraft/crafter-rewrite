@@ -1,10 +1,10 @@
 package com.crafter.structure.database.repositories
 
+import com.crafter.Encryption
 import com.crafter.structure.database.Database.dbQuery
 import com.crafter.structure.database.api.Repository
 import com.crafter.structure.database.models.RCONModel
 import com.crafter.structure.database.models.RCONRestrictModel
-import com.crafter.structure.utilities.Encryption
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 

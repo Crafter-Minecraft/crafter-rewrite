@@ -1,6 +1,6 @@
-package protocol.packet.clientbound
+package com.crafter.protocol.packet.clientbound
 
-import protocol.packet.Packet
+import com.crafter.protocol.packet.Packet
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 

@@ -1,4 +1,4 @@
-package com.crafter.structure.utilities
+package com.crafter
 
 import java.util.*
 

@@ -1,5 +1,6 @@
-package rcon
+package com.crafter.rcon
 
+import com.crafter.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

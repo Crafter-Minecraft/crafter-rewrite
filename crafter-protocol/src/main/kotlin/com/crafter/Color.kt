@@ -1,3 +1,5 @@
+package com.crafter
+
 const val PARAGRAPH = "§"
 
 enum class Color(val code: String) {
@@ -40,6 +42,4 @@ enum class Formatting(val code: String) {
     RESET_ADD_COLOR("${PARAGRAPH}r${PARAGRAPH}f")
 }
 
-fun clearText(text: String): String {
-    return text.replace("${PARAGRAPH}.".toRegex(), "")
-}
+fun clearText(text: String): String = text.replace("$PARAGRAPH.".toRegex(), "")

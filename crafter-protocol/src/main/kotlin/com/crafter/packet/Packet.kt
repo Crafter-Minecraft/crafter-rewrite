@@ -1,4 +1,4 @@
-package protocol.packet
+package com.crafter.protocol.packet
 
 import java.io.File
 import kotlin.reflect.full.*

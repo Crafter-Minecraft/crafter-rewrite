@@ -1,8 +1,8 @@
-package protocol.packet.clientbound
+package com.crafter.protocol.packet.clientbound
 
-import protocol.ProtocolVersion
-import protocol.packet.Packet
-import protocol.writeString
+import com.crafter.protocol.ProtocolVersion
+import com.crafter.protocol.packet.Packet
+import com.crafter.protocol.writeString
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.util.UUID

@@ -1,11 +1,10 @@
 package com.crafter.implementation
 
-import clearText
+import com.crafter.annotations.UnstableApi
+import com.crafter.clearText
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
 import com.crafter.structure.utilities.Images
-import com.crafter.structure.utilities.annotations.UnstableApi
-import com.crafter.structure.utilities.capitalize
 import com.crafter.structure.utilities.embed
 import kotlinx.serialization.json.*
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
@@ -15,10 +14,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
-import protocol.MinecraftProtocol
-import protocol.ProtocolVersion
-import protocol.getByProtocolVersion
-import protocol.packet.clientbound.handshake.HandshakeState
+import com.crafter.protocol.MinecraftProtocol
+import com.crafter.protocol.ProtocolVersion
+import com.crafter.protocol.getByProtocolVersion
+import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
 
 @OptIn(UnstableApi::class)
 object PingCommand : SlashCommand(
@@ -135,7 +134,7 @@ object PingCommand : SlashCommand(
 
         val serverVersion = serverInfo["version"]?.jsonObject
         if (serverVersion != null) {
-            val protocol = serverVersion["protocol"]?.jsonPrimitive?.content
+            val protocol = serverVersion["com/crafter/protocol"]?.jsonPrimitive?.content
             val versionByProtocol = versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", locale)
 
             addField(

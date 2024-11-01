@@ -1,12 +1,12 @@
 package com.crafter.implementation.bot
 
+import com.crafter.annotations.UnstableApi
 import com.crafter.discord.commands.SlashCommand
-import com.crafter.structure.utilities.annotations.UnstableApi
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import protocol.MinecraftProtocol
-import protocol.ProtocolVersion
-import protocol.packet.clientbound.handshake.HandshakeState
+import com.crafter.protocol.MinecraftProtocol
+import com.crafter.protocol.ProtocolVersion
+import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
 import java.util.*
 
 object BotCommand : SlashCommand("bot", "Your minecraft bot") {

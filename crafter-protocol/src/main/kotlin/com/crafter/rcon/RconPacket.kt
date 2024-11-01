@@ -1,4 +1,4 @@
-package rcon
+package com.crafter.rcon
 
 class RconPacket(val id: Int, val packetType: PacketType, val body: String) {
     fun toByteArray(): ByteArray {

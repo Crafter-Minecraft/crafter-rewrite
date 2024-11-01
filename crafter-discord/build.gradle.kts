@@ -7,7 +7,12 @@ plugins {
 group = "com.crafter"
 version = "1.0"
 
-dependencies { implementation(project(":crafter-protocol")) }
+dependencies {
+    implementation(project(":crafter-common"))
+    implementation(project(":crafter-protocol"))
+
+    implementation("com.github.crafter-minecraft:modrinth:1.0.1")
+}
 
 tasks {
     jar {

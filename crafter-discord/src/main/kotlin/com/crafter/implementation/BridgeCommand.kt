@@ -1,11 +1,13 @@
 package com.crafter.implementation
 
+import com.crafter.Color
+import com.crafter.Formatting
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
 import com.crafter.implementation.listeners.ReactionListener
 import com.crafter.structure.database.repositories.BridgeRepository
 import com.crafter.structure.database.repositories.RCONRepository
-import com.crafter.structure.utilities.getDefaultScope
+import com.crafter.getDefaultScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import net.dv8tion.jda.api.Permission
@@ -20,7 +22,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
-import rcon.RconController
+import com.crafter.rcon.RconController
 import kotlin.time.Duration.Companion.seconds
 
 object BridgeCommand : SlashCommand(

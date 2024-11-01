@@ -1,5 +1,6 @@
 package com.crafter.implementation
 
+import com.crafter.Helper
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.discord.t9n.text
@@ -11,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
-import rcon.RconController
+import com.crafter.rcon.RconController
 import java.io.IOException
 
 // This command can be singleton, because everything here static

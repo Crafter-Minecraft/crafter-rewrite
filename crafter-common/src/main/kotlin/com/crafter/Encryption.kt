@@ -1,6 +1,5 @@
-package com.crafter.structure.utilities
+package com.crafter
 
-import com.crafter.Property
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
