@@ -32,7 +32,7 @@ subprojects {
 
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 
-        implementation("com.github.boticord:botikotlin:2.1.2.6")
+        implementation("com.github.boticord:botikotlin:2.1.3.9")
     }
 
     kotlin.jvmToolchain(21)
