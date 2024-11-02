@@ -111,10 +111,6 @@ object ModCommand : SlashCommand("mod", "Sniff about mods") {
         commandData.addSubcommandGroups(groups)
     }
 
-    override fun onStringSelectInteraction(event: StringSelectInteractionEvent) {
-        super.onStringSelectInteraction(event)
-    }
-
     enum class ProjectType {
         Mod,
         Plugin
