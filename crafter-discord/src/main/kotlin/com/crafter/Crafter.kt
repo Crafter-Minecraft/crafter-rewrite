@@ -35,16 +35,13 @@ object CrafterInstance {
 
         if (boticordToken.isNotEmpty()) {
             val boticordChannel = jda.getTextChannelById(boticordChannelId)
-            val botId = jda.users[0].idLong
+
             getDefaultScope().launch {
                 boticord(token = boticordToken) {
-                    autopost(
-                        botId,
-                        null,
-                        null,
-                        jda.guilds.size
-                    )
-
+                    autopost(jda.selfUser.idLong) {
+                        guilds(jda.guilds.size)
+                        shards(jda.shardInfo.shardTotal)
+                    }
                     notifications { event ->
                         val eventName = event.event
 
