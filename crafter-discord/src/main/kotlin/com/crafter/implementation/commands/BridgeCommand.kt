@@ -1,13 +1,13 @@
-package com.crafter.implementation
+package com.crafter.implementation.commands
 
 import com.crafter.Color
 import com.crafter.Formatting
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
-import com.crafter.implementation.listeners.ReactionListener
 import com.crafter.structure.database.repositories.BridgeRepository
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.getDefaultScope
+import com.crafter.implementation.commands.listeners.ReactionListener
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import net.dv8tion.jda.api.Permission

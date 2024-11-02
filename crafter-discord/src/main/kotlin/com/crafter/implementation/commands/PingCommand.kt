@@ -1,4 +1,4 @@
-package com.crafter.implementation
+package com.crafter.implementation.commands
 
 import com.crafter.annotations.UnstableApi
 import com.crafter.clearText

@@ -2,10 +2,7 @@ package com.crafter.discord.registry
 
 import com.crafter.discord.Initializable
 import com.crafter.getDefaultScope
-import com.crafter.implementation.BridgeCommand
-import com.crafter.implementation.GuidelineCommand
-import com.crafter.implementation.PingCommand
-import com.crafter.implementation.RconCommand
+import com.crafter.implementation.commands.*
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
@@ -18,7 +15,8 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
         PingCommand,
         RconCommand,
         BridgeCommand,
-        GuidelineCommand
+        GuidelineCommand,
+        ModCommand
     )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {

@@ -1,4 +1,4 @@
-package com.crafter.implementation.bot
+package com.crafter.implementation.commands.bot
 
 import com.crafter.annotations.UnstableApi
 import com.crafter.discord.commands.SlashCommand

@@ -1,5 +1,6 @@
-package com.crafter.implementation.listeners
+package com.crafter.implementation.commands.listeners
 
+import com.crafter.discord.ListenerEnvironment
 import com.crafter.getDefaultScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -13,7 +14,7 @@ class ReactionListener(
     private val authorId: String,
     private val emoji: Emoji,
     private val block: suspend () -> Unit
-) : ListenerAdapter() {
+) : ListenerAdapter(), ListenerEnvironment {
     private val reactionReceived = CompletableDeferred<Unit>()
 
     override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
@@ -27,6 +28,6 @@ class ReactionListener(
 
     suspend fun await() = reactionReceived.await()
 
-    fun register(jda: JDA) = jda.addEventListener(this)
-    fun unregister(jda: JDA) = jda.removeEventListener(this)
+    override fun register(jda: JDA) = jda.addEventListener(this)
+    override fun unregister(jda: JDA) = jda.removeEventListener(this)
 }

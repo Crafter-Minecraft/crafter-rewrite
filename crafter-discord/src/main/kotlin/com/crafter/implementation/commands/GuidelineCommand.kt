@@ -1,4 +1,4 @@
-package com.crafter.implementation
+package com.crafter.implementation.commands
 
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.T9nProtocol
