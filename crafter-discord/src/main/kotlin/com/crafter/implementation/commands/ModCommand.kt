@@ -3,23 +3,23 @@ package com.crafter.implementation.commands
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
 import com.crafter.implementation.Navigation
+import com.crafter.models.Project
 import com.crafter.modrinth
 import com.crafter.structure.utilities.embedBuilder
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
+import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
 import net.dv8tion.jda.api.interactions.components.ActionRow
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu
 
 object ModCommand : SlashCommand("mod", "Sniff about mods") {
     override suspend fun execute(event: SlashCommandInteractionEvent) {
+        event.deferReply(false).queue()
+
         when (event.subcommandGroup) {
             "modrinth" -> modrinthGroup(event)
             "curseforge" -> curseforgeGroup(event)
@@ -31,8 +31,6 @@ object ModCommand : SlashCommand("mod", "Sniff about mods") {
     private suspend fun modrinthGroup(event: SlashCommandInteractionEvent) {
         when (event.subcommandName) {
             "search" -> {
-                event.deferReply(false).queue()
-
                 val name = event.getOption("name")!!.asString
                 val type = event.getOption("type")!!.asString
 
@@ -60,13 +58,6 @@ object ModCommand : SlashCommand("mod", "Sniff about mods") {
                             )
                             setThumbnail(extraInformation.iconUrl)
 
-                            val urls = mapOf(
-                                "discord" to extraInformation.discordUrl,
-                                "wiki" to extraInformation.wikiUrl,
-                                "issues" to extraInformation.issuesUrl,
-                                "source" to extraInformation.sourceUrl
-                            )
-
                             setColor(it.color)
                         }
                     }
@@ -83,12 +74,66 @@ object ModCommand : SlashCommand("mod", "Sniff about mods") {
                     editOriginalComponents(ActionRow.of(navigation.row)).queue()
                 }
             }
+            "info" -> {
+                val name = event.getOption("name")!!.asString
 
-            else -> "aboba"
+                var project: Project? = null
+
+                runCatching {
+                    project = modrinth.project.get(name)
+                }.onSuccess {
+                    val embed = projectEmbed(
+                        project!!.slug,
+                        project!!.description,
+                        project!!.license.id,
+                        project!!.url,
+                        project!!.clientSide,
+                        project!!.serverSide,
+                        project!!.color ?: 0,
+                        event.userLocale,
+                    )
+
+                    event.hook.sendMessageEmbeds(embed.build()).queue()
+                }.onFailure {
+                    event.hook.sendMessage(text("mod.404", event.userLocale)).queue()
+                }
+            }
+            else -> {}
         }
     }
 
     override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
+
+    private suspend fun projectEmbed(
+        title: String,
+        description: String,
+        license: String,
+        url: String,
+        clientSide: String,
+        serverSide: String,
+        color: Int,
+        locale: DiscordLocale
+    ) = embedBuilder {
+        setTitle(title)
+        setUrl(url)
+
+        setDescription("-# License: $license")
+        appendDescription("\n\n" + description)
+
+        addField(text("mod.mod.needed_on_client_side", locale), clientSide, false)
+        addField(text("mod.needed_on_server_side", locale), serverSide, false)
+
+        val extraInformation = modrinth.project.get(title)
+        addField(
+            text("mod.mod.game_versions", locale),
+            extraInformation.gameVersions?.joinToString(", ") ?:
+            text("mod.mod.unknown_versions", locale),
+            true
+        )
+        setThumbnail(extraInformation.iconUrl)
+
+        setColor(color)
+    }
 
     init {
         val groups = listOf("modrinth", "curseforge").map {
@@ -96,15 +141,17 @@ object ModCommand : SlashCommand("mod", "Sniff about mods") {
                 .addSubcommands(
                     SubcommandData("search", "Search mod/plugin")
                         .addOptions(
-                            OptionData(OptionType.STRING, "name", "name"),
-                            OptionData(OptionType.STRING, "type", "name")
+                            OptionData(OptionType.STRING, "name", "Project name"),
+                            OptionData(OptionType.STRING, "type", "Is plugin or mod?")
                                 .addChoices(ProjectType.entries.map { projectType ->
                                     Choice(
                                         projectType.name.lowercase(),
                                         projectType.name.lowercase()
                                     )
                                 })
-                        )
+                        ),
+                    SubcommandData("info", "Information about mod/plugin")
+                        .addOptions(OptionData(OptionType.STRING, "name", "Project name"))
                 )
         }
 
