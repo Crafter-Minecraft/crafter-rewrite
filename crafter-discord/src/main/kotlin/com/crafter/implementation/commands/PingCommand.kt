@@ -1,6 +1,7 @@
 package com.crafter.implementation.commands
 
 import com.crafter.annotations.UnstableApi
+import com.crafter.capitalize
 import com.crafter.clearText
 import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
@@ -18,6 +19,8 @@ import com.crafter.protocol.MinecraftProtocol
 import com.crafter.protocol.ProtocolVersion
 import com.crafter.protocol.getByProtocolVersion
 import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
+import net.dv8tion.jda.api.interactions.IntegrationType
+import net.dv8tion.jda.api.interactions.InteractionContextType
 
 @OptIn(UnstableApi::class)
 object PingCommand : SlashCommand(
@@ -65,7 +68,6 @@ object PingCommand : SlashCommand(
 
             event.hook.sendMessage(messageBuilder.build()).queue()
         } catch (e: Exception) {
-            e.printStackTrace()
             event.replyWithMessage(
                 "ping.cant_retrieve_server",
                 event.userLocale
@@ -166,4 +168,11 @@ object PingCommand : SlashCommand(
         **/
         return listOf("version" to protocolVersionMap.map { it.key.capitalize() })
     }
+
+     init {
+         commandData.apply {
+             setContexts(InteractionContextType.ALL)
+             setIntegrationTypes(IntegrationType.ALL)
+         }
+     }
 }

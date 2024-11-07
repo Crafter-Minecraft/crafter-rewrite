@@ -19,7 +19,10 @@ subprojects {
 
     dependencies {
         // Discord
-        implementation("net.dv8tion:JDA:${property("jda_version")}")
+        // implementation("net.dv8tion:JDA:${property("jda_version")}")
+        // using this fork because here implemented user-apps and that's pull request to JDA
+        // https://github.com/discord-jda/JDA/pull/2633
+        implementation("io.github.freya022:JDA:e88cfadcb8")
 
         // Database
         implementation("org.postgresql:postgresql:42.7.3")
