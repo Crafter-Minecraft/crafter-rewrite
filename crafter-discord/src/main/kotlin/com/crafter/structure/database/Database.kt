@@ -16,6 +16,8 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
   A database singleton.
  **/
 object Database : Initializable {
+    private val models = listOf(BridgeModel, RCONModel, RCONRestrictModel)
+
     private val driver by Property("storage.db.driverClassName")
     private val jdbcUrl by Property("storage.db.jdbcURL")
     private val username by Property("storage.db.username")
@@ -37,9 +39,7 @@ object Database : Initializable {
     }
 
     private fun register() {
-        SchemaUtils.create(RCONModel)
-        SchemaUtils.create(BridgeModel)
-        SchemaUtils.create(RCONRestrictModel)
+        models.forEach { SchemaUtils.create(it) }
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =

@@ -3,39 +3,33 @@ package com.crafter.implementation.commands
 import com.crafter.annotations.UnstableApi
 import com.crafter.capitalize
 import com.crafter.clearText
-import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
+import com.crafter.discord.core.child.SlashCommand
+import com.crafter.protocol.MinecraftProtocol
+import com.crafter.protocol.ProtocolVersion
+import com.crafter.protocol.getByProtocolVersion
+import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
 import com.crafter.structure.utilities.Images
 import com.crafter.structure.utilities.embed
 import kotlinx.serialization.json.*
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.DiscordLocale
-import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import net.dv8tion.jda.api.utils.FileUpload
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
-import com.crafter.protocol.MinecraftProtocol
-import com.crafter.protocol.ProtocolVersion
-import com.crafter.protocol.getByProtocolVersion
-import com.crafter.protocol.packet.clientbound.handshake.HandshakeState
 import net.dv8tion.jda.api.interactions.IntegrationType
 import net.dv8tion.jda.api.interactions.InteractionContextType
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 @OptIn(UnstableApi::class)
-object PingCommand : SlashCommand(
-    "ping",
-    "Ping server you want",
-    listOf(
-        OptionData(OptionType.STRING, "server", "Server that you wanna check", true),
-        OptionData(OptionType.STRING, "port", "Server port", false),
-        OptionData(OptionType.STRING, "version", "Server version (eg. 1.12.2; Alpha 1.2.2; Beta 1.1_02)", false, true)
-    )
-) {
+object PingCommand : SlashCommand("ping", "Ping server you want", {
+    argument<String>("server", "Server that you wanna check", true)
+    argument<String>("port", "Server port", false)
+    argument<String>("version", "Server version (eg. 1.12.2; Alpha 1.2.2; Beta 1.1_02)", false, true)
+}) {
     private val protocolVersionMap = ProtocolVersion.entries.associateBy({ it.original.lowercase() }, { it.number })
     private val versionProtocolMap = ProtocolVersion.entries.associateBy({ it.number }, { it.original })
 
-    override suspend fun execute(event: SlashCommandInteractionEvent) {
+    override suspend fun invoke(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
 
         val address = event.getOption("server")!!.asString
@@ -86,7 +80,11 @@ object PingCommand : SlashCommand(
         return Json.decodeFromString(rawInfo)
     }
 
-    private fun parseDescriptionText(previousKey: String? = null, serverInfo: JsonElement?, locale: DiscordLocale): String {
+    private fun parseDescriptionText(
+        previousKey: String? = null,
+        serverInfo: JsonElement?,
+        locale: DiscordLocale
+    ): String {
         if (serverInfo == null) return text("ping.no_description", locale)
 
         val textBuilder = StringBuilder()
@@ -101,11 +99,13 @@ object PingCommand : SlashCommand(
                     }
                 }
             }
+
             is JsonArray -> {
                 for (element in serverInfo) {
                     textBuilder.append(parseDescriptionText(previousKey, element, locale))
                 }
             }
+
             is JsonPrimitive -> {
                 if (serverInfo.isString && previousKey == "text") {
                     textBuilder.append(serverInfo.content)
@@ -137,7 +137,8 @@ object PingCommand : SlashCommand(
         val serverVersion = serverInfo["version"]?.jsonObject
         if (serverVersion != null) {
             val protocol = serverVersion["com/crafter/protocol"]?.jsonPrimitive?.content
-            val versionByProtocol = versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", locale)
+            val versionByProtocol =
+                versionProtocolMap[protocol?.toInt()] ?: text("ping.server_info.version.unknown", locale)
 
             addField(
                 text("ping.server_info.version", locale),
@@ -161,18 +162,18 @@ object PingCommand : SlashCommand(
         if (favicon != null) setThumbnail("attachment://favicon.png")
     }
 
-    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {
+    override suspend fun autocomplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>> {
         // Why kotlin.text.String.capitalize() deprecated?
         /**
-        * Here I'm using my extension for string, see [capitalize]
-        **/
+         * Here I'm using my extension for string, see [capitalize]
+         **/
         return listOf("version" to protocolVersionMap.map { it.key.capitalize() })
     }
 
-     init {
-         commandData.apply {
-             setContexts(InteractionContextType.ALL)
-             setIntegrationTypes(IntegrationType.ALL)
-         }
-     }
+    init {
+        commandData.apply {
+            setContexts(InteractionContextType.ALL)
+            setIntegrationTypes(IntegrationType.ALL)
+        }
+    }
 }

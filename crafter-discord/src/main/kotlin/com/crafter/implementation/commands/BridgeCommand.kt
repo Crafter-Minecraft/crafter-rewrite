@@ -2,108 +2,37 @@ package com.crafter.implementation.commands
 
 import com.crafter.Color
 import com.crafter.Formatting
-import com.crafter.discord.commands.SlashCommand
 import com.crafter.discord.t9n.text
-import com.crafter.structure.database.repositories.BridgeRepository
-import com.crafter.structure.database.repositories.RCONRepository
+import com.crafter.discord.core.child.SlashCommand
+import com.crafter.discord.core.child.Subcommand
 import com.crafter.getDefaultScope
 import com.crafter.implementation.commands.listeners.ReactionListener
+import com.crafter.rcon.RconController
+import com.crafter.structure.database.repositories.BridgeRepository
+import com.crafter.structure.database.repositories.RCONRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.channel.ChannelType
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
-import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
-import com.crafter.rcon.RconController
 import kotlin.time.Duration.Companion.seconds
 
-object BridgeCommand : SlashCommand(
-    "bridge",
-    "Makes bridge between your minecraft server and discord"
-) {
+object BridgeCommand : SlashCommand("bridge", "Makes bridge between your minecraft server and discord", {
+    defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+    subCommand(EnableBridgeCommand::class)
+    subCommand(ChannelBridgeCommand::class)
+}) {
     private const val WHITE_CHECK_MARK = "U+2705"
     private val WHITE_CHECK_MARK_EMOJI = Emoji.fromUnicode(WHITE_CHECK_MARK)
 
-    override suspend fun execute(event: SlashCommandInteractionEvent) {
-        when (event.subcommandName) {
-            "enable" -> {
-                val guildId = event.guild!!.id
+    override suspend fun invoke(event: SlashCommandInteractionEvent) {}
 
-                var isBridgeEnabled = BridgeRepository.isEnabled(guildId)
-                val isRconEnabled = RCONRepository.get(guildId) != null
-
-                if (!isRconEnabled && !isBridgeEnabled) {
-                    event.replyLocalized(
-                        "bridge.rcon_not_enabled",
-                        event.userLocale
-                    )
-                    return
-                }
-
-                val bridgeData = BridgeRepository.get(guildId)
-                val toUpsert = mutableMapOf<String, Any>(
-                    "guildId" to guildId,
-                    "isEnabled" to !isBridgeEnabled
-                )
-
-                bridgeData?.let {
-                    toUpsert["channelId"] = it["channelId"].toString()
-                }
-
-                isBridgeEnabled = toUpsert["isEnabled"] as Boolean
-                BridgeRepository.upsert(toUpsert)
-
-                val statusText = text(
-                    "bridge.toggle.value.${if (isBridgeEnabled) "enabled" else "disabled"}",
-                    event.userLocale
-                )
-
-                val responseText = text(
-                    "bridge.toggled",
-                    event.userLocale
-                ).format(statusText)
-
-                event.reply(responseText).queue()
-            }
-            "channel" -> {
-                val guild = event.guild!!
-                val channel = event.getOption("channel")!!.asChannel as TextChannel
-
-                if (!channel.canTalk()) {
-                    event.replyLocalized("bridge.channel.not_enough_perms", event.userLocale)
-                    return
-                }
-
-                val repository = BridgeRepository
-                val guildId = guild.id
-                val data = repository.get(guildId)
-
-                if (data != null && data["channelId"] == channel.id) {
-                    repository.delete(guildId)
-                    event.replyLocalized("bridge.channel.deleted", event.userLocale)
-                    return
-                }
-
-                repository.upsert(mapOf(
-                    "guildId" to event.guild!!.id,
-                    "isEnabled" to true,
-                    "channelId" to channel.id
-                ))
-
-                event.replyLocalized("bridge.channel.updated", event.userLocale)
-            }
-        }
-    }
-
-    override fun autoComplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
+    override suspend fun autocomplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         getDefaultScope().launch {
@@ -151,16 +80,81 @@ object BridgeCommand : SlashCommand(
         listener.unregister(message.jda)
     }
 
-    init {
-        commandData.addSubcommands(
-            SubcommandData("enable", "Toggle bridge between servers"),
-            SubcommandData("channel", "Channel that should be bridge between servers")
-                .addOptions(
-                    OptionData(OptionType.CHANNEL, "channel", "Channel", true)
-                        .setChannelTypes(ChannelType.TEXT)
-                )
-        )
+    object EnableBridgeCommand : Subcommand("enable", "Toggle bridge between servers") {
+        override suspend fun invoke(event: SlashCommandInteractionEvent) {
+            val guildId = event.guild!!.id
 
-        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))
+            var isBridgeEnabled = BridgeRepository.isEnabled(guildId)
+            val isRconEnabled = RCONRepository.get(guildId) != null
+
+            if (!isRconEnabled && !isBridgeEnabled) {
+                event.replyLocalized(
+                    "bridge.rcon_not_enabled",
+                    event.userLocale
+                )
+                return
+            }
+
+            val bridgeData = BridgeRepository.get(guildId)
+            val toUpsert = mutableMapOf<String, Any>(
+                "guildId" to guildId,
+                "isEnabled" to !isBridgeEnabled
+            )
+
+            bridgeData?.let {
+                toUpsert["channelId"] = it["channelId"].toString()
+            }
+
+            isBridgeEnabled = toUpsert["isEnabled"] as Boolean
+            BridgeRepository.upsert(toUpsert)
+
+            val statusText = text(
+                "bridge.toggle.value.${if (isBridgeEnabled) "enabled" else "disabled"}",
+                event.userLocale
+            )
+
+            val responseText = text(
+                "bridge.toggled",
+                event.userLocale
+            ).format(statusText)
+
+            event.reply(responseText).queue()
+        }
+
+        override suspend fun autocomplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
+    }
+
+    object ChannelBridgeCommand : Subcommand("channel", "Channel that should be bridge between servers", {
+        argument<TextChannel>("channel", "Channel", true)
+    }) {
+        override suspend fun invoke(event: SlashCommandInteractionEvent) {
+            val guild = event.guild!!
+            val channel = event.getOption("channel")!!.asChannel as TextChannel
+
+            if (!channel.canTalk()) {
+                event.replyLocalized("bridge.channel.not_enough_perms", event.userLocale)
+                return
+            }
+
+            val repository = BridgeRepository
+            val guildId = guild.id
+            val data = repository.get(guildId)
+
+            if (data != null && data["channelId"] == channel.id) {
+                repository.delete(guildId)
+                event.replyLocalized("bridge.channel.deleted", event.userLocale)
+                return
+            }
+
+            repository.upsert(mapOf(
+                "guildId" to event.guild!!.id,
+                "isEnabled" to true,
+                "channelId" to channel.id
+            ))
+
+            event.replyLocalized("bridge.channel.updated", event.userLocale)
+        }
+
+        override suspend fun autocomplete(event: CommandAutoCompleteInteractionEvent): List<Pair<String, List<String>>>? = null
     }
 }
