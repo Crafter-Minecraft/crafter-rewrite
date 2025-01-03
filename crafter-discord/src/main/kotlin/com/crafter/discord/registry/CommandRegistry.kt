@@ -38,8 +38,8 @@ class CommandRegistry(private val jda: JDA) : ListenerAdapter(), Initializable {
         defaultScope.launch {
             val command = slashCommandList.firstOrNull { it.name == event.name } ?: return@launch
             val invokableCommand = getCommand(command, event.fullCommandName)
-
             val autoCompleteOptions = invokableCommand.autocomplete(event)
+
             autoCompleteOptions?.forEach {
                 if (event.name == command.name && it.first == event.focusedOption.name) {
                     val options = it.second.filter { word -> word.startsWith(event.focusedOption.value) }

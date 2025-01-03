@@ -3,6 +3,8 @@ package com.crafter.discord.core.child
 import com.crafter.discord.t9n.text
 import com.crafter.discord.core.CommandSetup
 import com.crafter.discord.core.ConceptCommand
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.channel.Channel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.build.Commands
@@ -17,6 +19,17 @@ abstract class SlashCommand(
     val subcommands = mutableListOf<Subcommand>()
 
     final override val commandData: SlashCommandData = Commands.slash(name, description)
+
+    inline fun <reified T> SlashCommandInteractionEvent.option(name: String): T? = when (T::class) {
+        Int::class -> getOption(name)?.asInt
+        String::class -> getOption(name)?.asInt
+        Long::class -> getOption(name)?.asLong
+        Boolean::class -> getOption(name)?.asBoolean
+        Role::class -> getOption(name)?.asRole
+        Double::class -> getOption(name)?.asDouble
+        Channel::class -> getOption(name)?.asChannel
+        else -> throw IllegalStateException("Unknown option type ${T::class}")
+    } as? T
 
     fun SlashCommandInteractionEvent.replyWithMessage(
         translationKey: String,

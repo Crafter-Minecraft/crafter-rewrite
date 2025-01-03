@@ -5,6 +5,8 @@ import com.crafter.discord.t9n.text
 import com.crafter.discord.core.child.SlashCommand
 import com.crafter.discord.core.child.Subcommand
 import com.crafter.rcon.RconController
+import com.crafter.structure.database.models.RCON
+import com.crafter.structure.database.models.RCONRestrict
 import com.crafter.structure.database.repositories.RCONRepository
 import com.crafter.structure.database.repositories.RCONRestrictionRepository
 import net.dv8tion.jda.api.Permission
@@ -47,10 +49,11 @@ object RconCommand : SlashCommand("rcon", "Main RCON command", {
         argument<String>("password", "Your RCON password", true)
     }) {
         override suspend fun invoke(event: SlashCommandInteractionEvent) {
+            // These options always != null
             val (ip, port, password) = Triple(
-                event.getOption("ip")!!.asString,
-                event.getOption("port")!!.asString,
-                event.getOption("password")!!.asString
+                event.option<String>("ip") ?: return,
+                event.option<String>("port") ?: return,
+                event.option<String>("password") ?: return
             )
 
             if (isUnsafePassword(password)) {
@@ -73,11 +76,11 @@ object RconCommand : SlashCommand("rcon", "Main RCON command", {
                     .queue()
             } else {
                 RCONRepository.upsert(
-                    mapOf(
-                        "guild_id" to event.interaction.guild!!.id,
-                        "ip" to ip,
-                        "port" to port.toInt(),
-                        "password" to password
+                    RCON(
+                        event.interaction.guild!!.id,
+                        ip,
+                        port.toInt(),
+                        password
                     )
                 )
 
@@ -121,9 +124,9 @@ object RconCommand : SlashCommand("rcon", "Main RCON command", {
 
             try {
                 val rconController = RconController(
-                    data["ip"].toString(),
-                    data["port"] as Int,
-                    RCONRepository.getRconPassword(data["password"].toString())
+                    data.ipv4,
+                    data.port,
+                    RCONRepository.getRconPassword(data.password)
                 )
 
                 val responses = rconController.use { it.send(command) }
@@ -164,9 +167,9 @@ object RconCommand : SlashCommand("rcon", "Main RCON command", {
                 return
             }
 
-            repository.upsert(mapOf(
-                "guildId" to guildId,
-                "userId" to userId
+            repository.upsert(RCONRestrict(
+                guildId,
+                userId
             ))
 
             event.replyLocalized("rcon.restrict.user_added", event.userLocale)

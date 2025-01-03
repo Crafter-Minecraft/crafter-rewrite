@@ -3,6 +3,8 @@ package com.crafter.structure.database.models
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
+data class RCON(val guildId: String, val ipv4: String, val port: Int, val password: String)
+
 object RCONModel : Table() {
     val guildId: Column<String> = varchar("guild_id", 20)
     val ipv4: Column<String> = varchar("ip", 20).uniqueIndex()

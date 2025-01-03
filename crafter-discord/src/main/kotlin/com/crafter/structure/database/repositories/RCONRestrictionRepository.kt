@@ -2,16 +2,17 @@ package com.crafter.structure.database.repositories
 
 import com.crafter.structure.database.Database.dbQuery
 import com.crafter.structure.database.api.Repository
+import com.crafter.structure.database.models.RCONRestrict
 import com.crafter.structure.database.models.RCONRestrictModel
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
-object RCONRestrictionRepository : Repository() {
+object RCONRestrictionRepository : Repository<RCONRestrict>() {
     private val model = RCONRestrictModel
 
-    override suspend fun upsert(data: Map<String, Any>): Unit = dbQuery {
-        val dataGuildId = data["guildId"].toString()
-        val dataUserId = data["userId"].toString()
+    override suspend fun upsert(data: RCONRestrict): Unit = dbQuery {
+        val dataGuildId = data.guildId
+        val dataUserId = data.userId
 
         if (!isUserExists(dataGuildId, dataUserId)) {
             model.insert {
@@ -28,10 +29,10 @@ object RCONRestrictionRepository : Repository() {
         }
     }
 
-    override suspend fun get(key: String): Map<String, Any>? = dbQuery {
+    override suspend fun get(primaryKey: String): RCONRestrict? = dbQuery {
         model.selectAll()
-            .where { model.guildId eq key }
-            .map { mapOf("guildId" to it[model.guildId], "userId" to it[model.userId]) }
+            .where { model.guildId eq primaryKey }
+            .map { RCONRestrict(it[model.guildId], it[model.userId]) }
             .singleOrNull()
     }
 
@@ -46,7 +47,7 @@ object RCONRestrictionRepository : Repository() {
         model.deleteWhere { Op.build { model.guildId eq guildId }.and { RCONRestrictModel.userId eq userId } }
     }
 
-    override suspend fun delete(key: String): Unit = dbQuery {
+    override suspend fun delete(primaryKey: String): Unit = dbQuery {
         model.deleteWhere { userId eq userId }
     }
 }

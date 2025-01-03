@@ -8,6 +8,7 @@ import com.crafter.discord.core.child.Subcommand
 import com.crafter.getDefaultScope
 import com.crafter.implementation.commands.listeners.ReactionListener
 import com.crafter.rcon.RconController
+import com.crafter.structure.database.models.Bridge
 import com.crafter.structure.database.repositories.BridgeRepository
 import com.crafter.structure.database.repositories.RCONRepository
 import kotlinx.coroutines.launch
@@ -41,16 +42,15 @@ object BridgeCommand : SlashCommand("bridge", "Makes bridge between your minecra
             val repository = BridgeRepository
 
             if (repository.isEnabled(event.guild.id)) {
-                val data = repository.get(event.guild.id) ?: return@launch
-                val channelId = data["channelId"]
+                val bridgeData = repository.get(event.guild.id) ?: return@launch
 
-                if (channelId == event.channel.id) {
+                if (bridgeData.channelId == event.channel.id) {
                     val rconData = RCONRepository.get(event.guild.id) ?: return@launch
                     val listener = ReactionListener(event.channel.id, event.author.id, WHITE_CHECK_MARK_EMOJI) {
                         RconController(
-                            rconData["ip"].toString(),
-                            rconData["port"] as Int,
-                            RCONRepository.getRconPassword(rconData["password"].toString())
+                            rconData.ipv4,
+                            rconData.port,
+                            RCONRepository.getRconPassword(rconData.password)
                         ).use {
                             var command = "tellraw @a \"${Color.BLUE.code}[Discord]${Formatting.RESET_ADD_COLOR.code} ${event.message.author.name}: ${event.message.contentDisplay} %s\""
 
@@ -95,17 +95,14 @@ object BridgeCommand : SlashCommand("bridge", "Makes bridge between your minecra
                 return
             }
 
-            val bridgeData = BridgeRepository.get(guildId)
-            val toUpsert = mutableMapOf<String, Any>(
-                "guildId" to guildId,
-                "isEnabled" to !isBridgeEnabled
+            val bridgeData = BridgeRepository.get(guildId) ?: return
+            val toUpsert = Bridge(
+                guildId,
+                !isBridgeEnabled,
+                bridgeData.channelId
             )
 
-            bridgeData?.let {
-                toUpsert["channelId"] = it["channelId"].toString()
-            }
-
-            isBridgeEnabled = toUpsert["isEnabled"] as Boolean
+            isBridgeEnabled = toUpsert.bridgeEnable
             BridgeRepository.upsert(toUpsert)
 
             val statusText = text(
@@ -140,17 +137,19 @@ object BridgeCommand : SlashCommand("bridge", "Makes bridge between your minecra
             val guildId = guild.id
             val data = repository.get(guildId)
 
-            if (data != null && data["channelId"] == channel.id) {
+            if (data != null && data.channelId == channel.id) {
                 repository.delete(guildId)
                 event.replyLocalized("bridge.channel.deleted", event.userLocale)
                 return
             }
 
-            repository.upsert(mapOf(
-                "guildId" to event.guild!!.id,
-                "isEnabled" to true,
-                "channelId" to channel.id
-            ))
+            repository.upsert(
+                Bridge(
+                    event.guild!!.id,
+                    true,
+                    channel.id,
+                )
+            )
 
             event.replyLocalized("bridge.channel.updated", event.userLocale)
         }
